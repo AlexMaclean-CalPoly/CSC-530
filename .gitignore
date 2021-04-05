@@ -1,0 +1,6 @@
+*.o
+tester
+runner
+CMakeLists.txt
+.idea
+cmake-build-debug
