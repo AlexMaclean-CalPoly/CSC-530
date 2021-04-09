@@ -46,11 +46,11 @@
   (match e
     [(? real?) (~v e)]
     [(EnvC i id) (format "env[~a /* ~a */]" i id)]
-    [(PrimC 'println (list arg)) (format "printf(\"%d\\n\", (int) ~a)" (c-translate arg))]
+    [(PrimC 'println (list arg)) (format "printf(\"%d\\n\", (long) ~a)" (c-translate arg))]
     [(PrimC 'ifleq0 (list f t e))
-     (format "((int) ~a <= 0 ? ~a : ~a)" (c-translate f) (c-translate t) (c-translate e))]
-    [(PrimC '+ (list a b)) (format "((int) ~a + (int) ~a)" (c-translate a) (c-translate b))]
-    [(PrimC '* (list a b)) (format "((int) ~a * (int) ~a)" (c-translate a) (c-translate b))]
+     (format "((long) ~a <= 0 ? ~a : ~a)" (c-translate f) (c-translate t) (c-translate e))]
+    [(PrimC '+ (list a b)) (format "((long) ~a + (long) ~a)" (c-translate a) (c-translate b))]
+    [(PrimC '* (list a b)) (format "((long) ~a * (long) ~a)" (c-translate a) (c-translate b))]
     [(AppC f arg) (format "run_closure(~a, ~a)" (c-translate f) (c-translate arg))]
     [(FunC name len) (format "create_closure(&~a, env, ~a)" name len)]))
 
