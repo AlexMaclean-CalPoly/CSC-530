@@ -6,5 +6,4 @@ struct Closure {
 
 int main() {
     int i;
-
 }
