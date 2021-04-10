@@ -2,13 +2,13 @@
 Alex MacLean, Bailey Wickham
 
 ### Install
-```
-make
+```bash
+>> make
 ```
 
 ### Usage
-```
-./transpiler c|python infile
+```bash
+#./transpiler c|python infile
 
 >> ./transpiler python examples/fact.lc
 ```
