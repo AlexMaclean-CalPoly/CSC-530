@@ -1,41 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <string.h>
 
 typedef struct Closure {
-    void* (*func)(void**);
+    void* (*func)(void*, void**);
     void** env;
-    int len;
 } Clo;
 
-Clo* create_closure(void* (*func)(void**), void** env, int len) {
+Clo* lam(void* (*func)(void*, void**), void** env) {
     Clo* clo = (Clo*)malloc(sizeof(Clo));
     clo->func = func;
-    clo->env = (void**)malloc(sizeof(void*)*(len+1));
-    memcpy(clo->env+1, env, len);
-    clo->len = len;
+    clo->env = env;
     return clo;
 }
 
-void* run_closure(void* c, void* arg) {
+void** ext(void* arg, void** env, int len) {
+    void** new_env = (void**)malloc(sizeof(void*)*len+1);
+    new_env[0] = arg;
+    memcpy(new_env+1, env, len);
+    return new_env;
+}
+
+void* app(void* c, void* arg) {
     Clo* clo = (Clo *)c;
-    clo->env[0] = arg;
-    return (*(clo->func))(clo->env);
-}
-void* lambda6605(void** env) {
-    return ((int) env[0 /* v */] <= 0 ? 1 : ((int) env[0 /* v */] * (int) run_closure(run_closure(env[1 /* self */], env[1 /* self */]), ((int) env[0 /* v */] + (int) -1))));
+    return (*(clo->func))(arg, clo->env);
 }
 
-void* lambda6603(void** env) {
-    return run_closure(run_closure(env[0 /* fact */], env[0 /* fact */]), 10);
+void* lambda8400(void* v, void** env) {
+    return ((long) v <= 0 ? 1 : ((long) v * (long) app(app(env[0 /* self */], env[0 /* self */]), ((long) v + (long) -1))));
 }
 
-void* lambda6604(void** env) {
-    return create_closure(&lambda6605, env, 1);
+void* lambda8398(void* fact, void** env) {
+    return app(app(fact, fact), 10);
+}
+
+void* lambda8399(void* self, void** env) {
+    return lam(&lambda8400, ext(self, env, 0));
 }
 
 int main() {
-    void* env = 0;
-    return printf("%d\n", (int) run_closure(create_closure(&lambda6603, env, 0), create_closure(&lambda6604, env, 0)));
+    return printf("%d\n", (long) app(lam(&lambda8398, NULL), lam(&lambda8399, NULL)));
 }
 

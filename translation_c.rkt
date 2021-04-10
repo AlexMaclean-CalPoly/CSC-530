@@ -1,68 +1,107 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (require "parse.rkt")
 
 (define-type ExprC (U FunC EnvC PrimC Real Symbol AppC LamC))
-(struct FunC ([name : Symbol] [len : Integer]) #:transparent)
-(struct EnvC ([i : Integer] [name : Symbol]) #:transparent)
+(struct FunC ([name : Symbol]) #:transparent)
+(struct EnvC ([i : (U Symbol Integer)] [name : Symbol]) #:transparent)
 
 (struct LamC ([arg : Symbol] [body : ExprC] [len : Integer]) #:transparent)
 (struct AppC ([f : ExprC] [arg : ExprC]) #:transparent)
 (struct PrimC ([name : Symbol] [args : (Listof ExprC)]) #:transparent)
 
-(define-type ProgramC (Mutable-HashTable Symbol ExprC))
+(struct FunDefC ([name : Symbol] [arg : Symbol] [body : ExprC] [len : Integer]) #:transparent)
+
+(define-type ProgramC (Mutable-HashTable Symbol FunDefC))
 (define-type Env (Listof Symbol))
 
 
 (define (top-translate [s : Sexp]) : Any
   (define funs : ProgramC (make-hash))
-  (define main (extract-funs (uncover-env (parse s) '()) funs))
-  (string-join (append (hash-map funs c-translate-fun) (list (c-translate-main main))) "\n\n"))
+  (define main (extract-funs (parse s) funs '()))
+  (string-append header
+                 (string-join (map c-translate-fun (reverse (sort (hash-values funs) FunDefC<?))))
+                 (c-translate-main main)))
 
-(define (extract-funs [e : ExprLC] [funs : ProgramC]) : ExprC
-  (match e
-    [(? EnvC?) e]
-    [(? real?) e]
-    [(? symbol?) e]
-    [(PrimC name args) (PrimC name (map (λ ([arg : ExprLC]) (extract-funs arg funs)) args))]
-    [(AppC f arg) (AppC (extract-funs f funs) (extract-funs arg funs))]
-    [(LamC arg body len) (add-fun body funs len)]))
-
-(define (uncover-env [e : ExprLC] [env : Env]) : ExprC
+(define (extract-funs [e : ExprLC] [funs : ProgramC] [env : Env]) : ExprC
   (match e
     [(? real?) e]
-    [(? symbol?) (EnvC (index-of env e) e)]
-    [(PrimLC name args) (PrimC name (map (lambda ([arg : ExprLC]) (uncover-env arg env)) args))]
-    [(AppLC f arg) (AppC (uncover-env f env) (uncover-env arg env))]
-    [(LamLC arg body) (LamC arg (uncover-env body (cons arg env)) (length env))]))
+    [(? symbol?) (EnvC (or (index-of (rest env) e) e) e)]
+    [(PrimLC name args) (PrimC name (map (λ ([arg : ExprLC]) (extract-funs arg funs env)) args))]
+    [(AppLC f arg) (AppC (extract-funs f funs env) (extract-funs arg funs env))]
+    [(LamLC arg body)
+     (let [(name (gensym 'lambda))]
+       (hash-set! funs name (FunDefC name arg (extract-funs body funs (cons arg env)) (length env)))
+       (FunC name))]))
 
 
-(define (add-fun [e : ExprC] [funs : ProgramC] [len : Integer]) : FunC
-  (define name (gensym 'lambda))
-  (hash-set! funs name (extract-funs e funs))
-  (FunC name len))
-
-(define (c-translate [e : ExprC]) : String
+(define (c-translate [e : ExprC] [env : String]) : String
   (match e
     [(? real?) (~v e)]
+    [(EnvC (? symbol? id) _) (~a id)]
     [(EnvC i id) (format "env[~a /* ~a */]" i id)]
-    [(PrimC 'println (list arg)) (format "printf(\"%d\\n\", (long) ~a)" (c-translate arg))]
+    [(PrimC 'println (list arg)) (format "printf(\"%d\\n\", (long) ~a)" (c-translate arg env))]
     [(PrimC 'ifleq0 (list f t e))
-     (format "((long) ~a <= 0 ? ~a : ~a)" (c-translate f) (c-translate t) (c-translate e))]
-    [(PrimC '+ (list a b)) (format "((long) ~a + (long) ~a)" (c-translate a) (c-translate b))]
-    [(PrimC '* (list a b)) (format "((long) ~a * (long) ~a)" (c-translate a) (c-translate b))]
-    [(AppC f arg) (format "run_closure(~a, ~a)" (c-translate f) (c-translate arg))]
-    [(FunC name len) (format "create_closure(&~a, env, ~a)" name len)]))
+     (format "((long) ~a <= 0 ? ~a : ~a)" (c-translate f env) (c-translate t env) (c-translate e env))]
+    [(PrimC '+ (list a b)) (format "((long) ~a + (long) ~a)" (c-translate a env) (c-translate b env))]
+    [(PrimC '* (list a b)) (format "((long) ~a * (long) ~a)" (c-translate a env) (c-translate b env))]
+    [(AppC f arg) (format "app(~a, ~a)" (c-translate f env) (c-translate arg env))]
+    [(FunC name) (format "lam(&~a, ~a)" name env)]))
 
-(define (c-translate-fun [s : Symbol] [e : ExprC]) : String
-  (format "void* ~a(void** env) {
-    return ~a;
-}" s (c-translate e)))
+(define (c-translate-fun [f : FunDefC]) : String
+  (match f
+    [(FunDefC name arg body len)
+        (format func name arg (c-translate body (format "ext(~a, env, ~a)" arg len)))]))
 
 (define (c-translate-main [e : ExprC]) : String
-  (format "int main() {
+  (format main (c-translate e "NULL")))
+
+(define (FunDefC<? [a : FunDefC] [b : FunDefC])
+  (< (FunDefC-len a) (FunDefC-len b)))
+
+(define main "
+int main() {
     return ~a;
-}" (c-translate e)))
+}
+")
+
+(define func "
+void* ~a(void* ~a, void** env) {
+    return ~a;
+}
+")
+
+(define header "
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+
+typedef struct Closure {
+    void* (*func)(void*, void**);
+    void** env;
+} Clo;
+
+Clo* lam(void* (*func)(void*, void**), void** env) {
+    Clo* clo = (Clo*)malloc(sizeof(Clo));
+    clo->func = func;
+    clo->env = env;
+    return clo;
+}
+
+void** ext(void* arg, void** env, int len) {
+    void** new_env = (void**)malloc(sizeof(void*)*len+1);
+    new_env[0] = arg;
+    memcpy(new_env+1, env, len);
+    return new_env;
+}
+
+void* app(void* c, void* arg) {
+    Clo* clo = (Clo *)c;
+    return (*(clo->func))(arg, clo->env);
+}
+")
+
 
 
 (displayln (top-translate 5))
