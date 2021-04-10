@@ -1,4 +1,4 @@
-## λC Transpiler
+# λC Transpiler
 Alex MacLean, Bailey Wickham
 
 ### Install
