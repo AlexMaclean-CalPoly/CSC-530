@@ -7,7 +7,7 @@
 ;; Transformation of another version space, ti and to transform the input and output to the types of
 ;; the underlying version space. to-1 maps an output from the underlying vs to an output of this type
 (struct TransformVS (space ti to to-) #:transparent)
-;; Okay, this one is just a backdoor class. 
+;; Okay, this one is just a backdoor class.
 (struct AtomicVS (context update execute) #:transparent)
 ;; Join of several other version spaces ti breaks the input value down to a list of input values
 ;; corresponding to the spaces, to breaks an output down into values that corespond to output values.
@@ -39,6 +39,10 @@
             (λ (context i) (if (void? context) (error "Unrestricted Version Space")
                                (map (λ (c) (apply-function c i)) context)))))
 
+(define (singleton-AtomicVS validate execute)
+  (AtomicVS #t (lambda (context i o) (and context (validate i o)))
+            (lambda (context i) (if context (list (execute i)) '()))))
+
 (define (intersect* a b)
   (if (void? a) b (set-intersect a b)))
 
@@ -61,6 +65,10 @@
                        (λ (i) (list (car (Document-cursor i)) (cdr (Document-cursor i))))
                        (λ (o) (list (car o) (cdr o)))
                        (λ (o) (cons (first o) (second o)))))
+
+(define ConstStr (basic-AtomicVS (lambda (i o) o) (lambda (context i) context)))
+
+(define Identity (singleton-AtomicVS = identity))
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -87,7 +95,8 @@
 
   (define rc (update RowCol (Document "a" '(1 . 1)) '(1 . 2)))
   (check-set-equal? (execute rc (Document "b" '(1 . 1))) '((1 . 2)))
-  (check-set-equal? (execute rc (Document "b" '(3 . 4))) 
+  (check-set-equal? (execute rc (Document "b" '(3 . 4)))
                     '((3 . 5) (3 . 2) (1 . 5) (1 . 2)))
   (check-set-equal? (execute (update rc (Document "b" '(1 . 2)) '(1 . 3)) (Document "b" '(4 . 6)))
-                    '((1 . 7) (4 . 7))))
+                    '((1 . 7) (4 . 7)))
+  (check-set-equal? (execute Identity 5) '(5)))
