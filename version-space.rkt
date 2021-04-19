@@ -1,6 +1,6 @@
 #lang racket
 
-(require "algebra.rkt")
+(require "algebra.rkt" "document.rkt")
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -11,51 +11,45 @@
                                (map (λ (c) (apply-function c i)) context)))))
 
 (define (singleton-AtomicVS validate execute)
-  (AtomicVS #t (lambda (context i o) (and context (validate i o)))
-            (lambda (context i) (if context (list (execute i)) '()))))
+  (AtomicVS #t (λ (context i o) (and context (validate i o)))
+            (λ (context i) (if context (list (execute i)) '()))))
 
 (define (intersect* a b)
   (if (void? a) b (set-intersect a b)))
 
-(define (to-offset doc)
-  (define cursor (Document-cursor doc))
-  (apply + (cdr cursor) (map string-length (take (string-split (Document-text doc) "\n") (car cursor)))))
-
-(define (from-offset text offset)
-  (define lines (string-split (substring text 0 offset) "\n"))
-  (cons (sub1 (length lines)) (string-length (last lines))))
-
-
 
 ;; ---------------------------------------------------------------------------------------------------
 
-(struct Document (text cursor) #:transparent)
-
 (define Const (basic-AtomicVS (λ (i o) o) (λ (context i) context)))
+(define ConstStr (basic-AtomicVS (λ (i o) o) (λ (context i) context)))
 (define LinearInt (basic-AtomicVS (λ (i o) (- o i)) +))
 
-(define AbsRow (TransformVS Const identity identity (lambda (o i) o)))
-(define RelRow (TransformVS LinearInt identity identity (lambda (o i) o)))
+(define AbsRow (TransformVS* Const identity identity identity))
+(define RelRow (TransformVS* LinearInt identity identity identity))
 (define Row (UnionVS (list AbsRow RelRow)))
 
-(define AbsCol (TransformVS Const identity identity (lambda (o i) o)))
-(define RelCol (TransformVS LinearInt identity identity (lambda (o i) o)))
+(define AbsCol (TransformVS* Const identity identity identity))
+(define RelCol (TransformVS* LinearInt identity identity identity))
 (define Col (UnionVS (list AbsCol RelCol)))
 
-(define RowCol (JoinVS (list Row Col)
-                       (λ (i) (list (car (Document-cursor i)) (cdr (Document-cursor i))))
-                       (λ (o) (list (car o) (cdr o)))
-                       (λ (o) (cons (first o) (second o)))))
-
-(define ConstStr (basic-AtomicVS (lambda (i o) o) (lambda (context i) context)))
+(define RowCol (JoinVS* (list Row Col)
+                        (λ (i) (list (car (Document-cursor i)) (cdr (Document-cursor i))))
+                        (λ (o) (list (car o) (cdr o)))
+                        (λ (o) (cons (first o) (second o)))))
 
 (define Identity (singleton-AtomicVS = identity))
 
-(define CharOffset (TransformVS LinearInt to-offset to-offset (lambda (o i) (from-offset o))))
+(define CharOffset (TransformVS LinearInt
+                                (λ (i) (loc->offset (Document-text i) (Document-cursor i)))
+                                (λ (o i) (loc->offset (Document-text i) o))
+                                (λ (o i) (offset->loc (Document-text i) o))))
 
 (define Location (UnionVS (list RowCol CharOffset)))
 
-(define Move (TransformVS Location identity Document-cursor (lambda (o i) (Document (Document-text i) o))))
+(define Move (TransformVS Location identity
+                          (λ (o i) (if (equal? (Document-text i) (Document-text o))
+                                       (Document-cursor o) (void)))
+                          (λ (o i) (Document (Document-text i) o))))
 
 (define Action (UnionVS (list Move)))
 ;; ---------------------------------------------------------------------------------------------------
@@ -68,6 +62,7 @@
   (define c (update Const (void) 5))
   (check-set-equal? (execute c (void)) '(5))
   (check-set-equal? (execute (update c (void) 7) (void)) '())
+  (check-set-equal? (execute (update Const (void) (void)) (void)) '())
   (check-exn #rx"Unrestricted Version Space" (thunk (execute Const (void))))
 
   (define lin (update LinearInt 2 4))
@@ -89,5 +84,16 @@
                     '((1 . 7) (4 . 7)))
   (check-set-equal? (execute Identity 5) '(5))
 
-  (check-equal? (to-offset (Document "hello\nworld" '(1 . 2))) 7)
-  (check-equal? (from-offset "hello\nworld" 7) '(1 . 2)))
+  (define a (update Action (Document "abc\ndef" '(0 . 2)) (Document "abc\ndef" '(1 . 0))))
+  (check-set-equal? (execute a (Document "123456\nabcdefg\nhijklmnop" '(1 . 1)))
+                    (list (Document "123456\nabcdefg\nhijklmnop" '(1 . 3))
+                          (Document "123456\nabcdefg\nhijklmnop" '(2 . -1))
+                          (Document "123456\nabcdefg\nhijklmnop" '(2 . 0))
+                          (Document "123456\nabcdefg\nhijklmnop" '(1 . -1))
+                          (Document "123456\nabcdefg\nhijklmnop" '(1 . 0))))
+  (check-equal? (execute (update Move (Document "abc" '(1 . 2)) (Document "def" '(3 . 4)))
+                         (Document "ac" '(0 . 0)))
+                '())
+  )
+
+  
