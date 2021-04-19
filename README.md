@@ -9,7 +9,8 @@ We began our implemtation in python (see the scratch-work directory) but chose t
 
 ## Example
 ```scheme
-> (define del-row (update Action (Document "111\n222\n333\n444" '(1 . 0)) (Document "111\n333\n444" '(1 . 0))))
+> (define del-row (update Action (Document "111\n222\n333\n444" '(1 . 0)) 
+                          (Document "111\n333\n444" '(1 . 0))))
 > (execute del-row (Document "----\n******\n&&&&&" '(0 . 0)))
 (list
  (Document "----\n&&&&&" '(0 . 0))
@@ -18,7 +19,9 @@ We began our implemtation in python (see the scratch-work directory) but chose t
  (Document "&&&&&" '(0 . 0))
  (Document "******\n&&&&&" '(0 . 0))
  (Document "\n******\n&&&&&" '(0 . 0)))
-> (define better-del-row (update del-row (Document "a\ne\ni\no\nu" '(3 . 0)) (Document "a\ne\ni\nu" '(3 . 0))))
+ 
+> (define better-del-row (update del-row (Document "a\ne\ni\no\nu" '(3 . 0))
+                                 (Document "a\ne\ni\nu" '(3 . 0))))
 > (execute better-del-row (Document "zero\none\ntwo\nthree\nfour" '(2 . 0)))
 (list
   (Document "zero\none\nthree\nfour" '(2 . 0)))
