@@ -17,6 +17,16 @@
 (define (intersect* a b)
   (if (void? a) b (set-intersect a b)))
 
+(define (to-offset doc)
+  (define cursor (Document-cursor doc))
+  (apply + (cdr cursor) (map string-length (take (string-split (Document-text doc) "\n") (car cursor)))))
+
+(define (from-offset text offset)
+  (define lines (string-split (substring text 0 offset) "\n"))
+  (cons (sub1 (length lines)) (string-length (last lines))))
+
+
+
 ;; ---------------------------------------------------------------------------------------------------
 
 (struct Document (text cursor) #:transparent)
@@ -24,12 +34,12 @@
 (define Const (basic-AtomicVS (λ (i o) o) (λ (context i) context)))
 (define LinearInt (basic-AtomicVS (λ (i o) (- o i)) +))
 
-(define AbsRow (TransformVS Const identity identity identity))
-(define RelRow (TransformVS LinearInt identity identity identity))
+(define AbsRow (TransformVS Const identity identity (lambda (o i) o)))
+(define RelRow (TransformVS LinearInt identity identity (lambda (o i) o)))
 (define Row (UnionVS (list AbsRow RelRow)))
 
-(define AbsCol (TransformVS Const identity identity identity))
-(define RelCol (TransformVS LinearInt identity identity identity))
+(define AbsCol (TransformVS Const identity identity (lambda (o i) o)))
+(define RelCol (TransformVS LinearInt identity identity (lambda (o i) o)))
 (define Col (UnionVS (list AbsCol RelCol)))
 
 (define RowCol (JoinVS (list Row Col)
@@ -41,6 +51,13 @@
 
 (define Identity (singleton-AtomicVS = identity))
 
+(define CharOffset (TransformVS LinearInt to-offset to-offset (lambda (o i) (from-offset o))))
+
+(define Location (UnionVS (list RowCol CharOffset)))
+
+(define Move (TransformVS Location identity Document-cursor (lambda (o i) (Document (Document-text i) o))))
+
+(define Action (UnionVS (list Move)))
 ;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
@@ -70,4 +87,7 @@
                     '((3 . 5) (3 . 2) (1 . 5) (1 . 2)))
   (check-set-equal? (execute (update rc (Document "b" '(1 . 2)) '(1 . 3)) (Document "b" '(4 . 6)))
                     '((1 . 7) (4 . 7)))
-  (check-set-equal? (execute Identity 5) '(5)))
+  (check-set-equal? (execute Identity 5) '(5))
+
+  (check-equal? (to-offset (Document "hello\nworld" '(1 . 2))) 7)
+  (check-equal? (from-offset "hello\nworld" 7) '(1 . 2)))

@@ -28,6 +28,6 @@
 (define (execute vs i)
   (match vs
     [(UnionVS spaces) (apply set-union (map (λ (s) (execute s i)) spaces))]
-    [(TransformVS space ti _ to-) (map to- (execute space (ti i)))]
-    [(JoinVS spaces ti _ to-) (map to- (apply cartesian-product (map execute spaces (ti i))))]
+    [(TransformVS space ti _ to-) (map (lambda (o) (to- o i)) (execute space (ti i)))]
+    [(JoinVS spaces ti _ to-) (map (lambda (o) (to- o i)) (apply cartesian-product (map execute spaces (ti i))))]
     [(AtomicVS context _ execute) (execute context i)]))
