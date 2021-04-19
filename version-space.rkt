@@ -2,7 +2,6 @@
 
 (require "algebra.rkt" "document.rkt")
 
-;; ---------------------------------------------------------------------------------------------------
 
 (define (basic-AtomicVS extract-context apply-function)
   (AtomicVS (void)
@@ -17,12 +16,12 @@
 (define (intersect* a b)
   (if (void? a) b (set-intersect a b)))
 
-
 ;; ---------------------------------------------------------------------------------------------------
 
 (define Const (basic-AtomicVS (λ (i o) o) (λ (context i) context)))
 (define ConstStr (basic-AtomicVS (λ (i o) o) (λ (context i) context)))
 (define LinearInt (basic-AtomicVS (λ (i o) (- o i)) +))
+(define Identity (singleton-AtomicVS = identity))
 
 (define AbsRow (TransformVS* Const identity identity identity))
 (define RelRow (TransformVS* LinearInt identity identity identity))
@@ -37,8 +36,6 @@
                         (λ (o) (list (car o) (cdr o)))
                         (λ (o) (cons (first o) (second o)))))
 
-(define Identity (singleton-AtomicVS = identity))
-
 (define CharOffset (TransformVS LinearInt
                                 (λ (i) (loc->offset (Document-text i) (Document-cursor i)))
                                 (λ (o i) (loc->offset (Document-text i) o))
@@ -51,7 +48,15 @@
                                        (Document-cursor o) (void)))
                           (λ (o i) (Document (Document-text i) o))))
 
-(define Action (UnionVS (list Move)))
+(define Delete (JoinVS (list Location Location)
+                       (λ (i) (list i i))
+                       (λ (o i) (or (and (equal? (Document-cursor i) (Document-cursor o))
+                                         (deleted-locs (Document-text i) (Document-text o)))
+                                    (list (void) (void))))
+                       (λ (o i) (apply delete-text i o))))
+
+(define Action (UnionVS (list Move Delete)))
+
 ;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
@@ -94,6 +99,18 @@
   (check-equal? (execute (update Move (Document "abc" '(1 . 2)) (Document "def" '(3 . 4)))
                          (Document "ac" '(0 . 0)))
                 '())
-  )
+
+  (define del-line1 (update (update Action (Document "abc\ndef" '(0 . 0)) (Document "def" '(0 . 0)))
+                      (Document "line 1\nline 2" '(1 . 1)) (Document "line 2" '(1 . 1))))
+  (check-set-equal? (execute del-line1 (Document "123456\nabcdefg\nhijklmnop" '(1 . 1)))
+                    (list (Document "abcdefg\nhijklmnop" '(1 . 1))))
+
+  (define del-next (update (update Action
+                                     (Document "this is a string" '(0 . 3))
+                                     (Document "thi is a string" '(0 . 3)))
+                      (Document "tringing is\nimportant" '(1 . 2))
+                      (Document "tringing is\nimrtant" '(1 . 2))))
+  (check-set-equal? (execute del-next (Document "--x--" '(0 . 2)))
+                    (list (Document "---" '(0 . 2)))))
 
   
