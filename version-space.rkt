@@ -55,7 +55,11 @@
                                     (list (void) (void))))
                        (λ (o i) (apply delete-text i o))))
 
-(define Action (UnionVS (list Move Delete)))
+(define Insert (TransformVS (UnionVS (list ConstStr)) identity
+                            (λ (o i) (or (get-inserted i o) (void)))
+                            (λ (o i) (insert-text i o))))
+
+(define Action (UnionVS (list Move Delete Insert)))
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -111,6 +115,10 @@
                       (Document "tringing is\nimportant" '(1 . 2))
                       (Document "tringing is\nimrtant" '(1 . 2))))
   (check-set-equal? (execute del-next (Document "--x--" '(0 . 2)))
-                    (list (Document "---" '(0 . 2)))))
+                    (list (Document "---" '(0 . 2))))
+
+  (check-set-equal? (execute (update Action (Document "abc" '(0 . 1)) (Document "axybc" '(0 . 3)))
+                             (Document "hello world" '(0 . 3)))
+                    (list (Document "helxylo world" '(0 . 5)))))
 
   

@@ -50,6 +50,27 @@
                            (substring text (min (string-length text) (loc->offset text end))))
             (Document-cursor doc)))
 
+;; Given 2 documents where the second has some text insterted in it at the cursor location, returns
+;; the text that has been insterted or null
+(define (get-inserted before after)
+  (define text-pre (Document-text before))
+  (define text-post (Document-text after))
+  (define i-pre (loc->offset text-pre (Document-cursor before)))
+  (define i-post (loc->offset text-post (Document-cursor after)))
+  (if (and (i-pre . < . i-post)
+           ((string-length text-pre) . < . (string-length text-post))
+           (equal? (substring text-pre 0 i-pre) (substring text-post 0 i-pre))
+           (equal? (substring text-pre i-pre) (substring text-post i-post)))
+      (substring text-post i-pre i-post)
+      #f))
+
+;; Given a document and text to insert in it at the cursor location, returns a
+(define (insert-text doc insert)
+  (define text (Document-text doc))
+  (define i (loc->offset text (Document-cursor doc)))
+  (define new-text (string-append (substring text 0 i) insert (substring text i)))
+  (Document new-text (offset->loc new-text (+ i (string-length insert)))))
+
 ;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
@@ -69,5 +90,10 @@
   (check-equal? (deleted-locs "this is a string" "this string") '((0 . 5) (0 . 10)))
 
   (check-equal? (delete-text (Document "abc\ndef" '(0 . 1)) '(0 . 2) '(1 . 1))
-                (Document "abef" '(0 . 1))))
+                (Document "abef" '(0 . 1)))
+  (check-equal? (get-inserted (Document "before" '(0 . 1)) (Document "beeefore" '(0 . 3))) "ee")
+  (check-equal? (get-inserted (Document "before" '(0 . 1)) (Document "bfore" '(0 . 1))) #f)
+
+  (check-equal? (insert-text (Document "abc\ndef" '(0 . 1)) "xyz\n123")
+                (Document "axyz\n123bc\ndef" '(1 . 3))))
 
