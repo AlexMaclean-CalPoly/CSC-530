@@ -22,12 +22,13 @@ Prim = + | * | - | / | < | > | =
 
 (define-type Program (Listof Stmt))
 
-(define-type Stmt (U While If Assert Assume Assign))
+(define-type Stmt (U While If Assert Assume Assign Assign-Unknown))
 (struct While ([test : Exp] [body : Program]) #:transparent)
 (struct If ([test : Exp] [body : Program]) #:transparent)
 (struct Assert ([test : Exp]) #:transparent)
 (struct Assume ([test : Exp]) #:transparent)
-(struct Assign ([var : Symbol] [val : (U Exp Void)]) #:transparent)
+(struct Assign ([var : Symbol] [val : Exp]) #:transparent)
+(struct Assign-Unknown ([var : Symbol]) #:transparent)
 
 (define-type Exp (U Integer Symbol Prim))
 (struct Prim ([op : Symbol] [a : Exp] [b : Exp]) #:transparent)
@@ -39,8 +40,8 @@ Prim = + | * | - | / | < | > | =
 
 (define (parse/Stmt [s : Sexp]) : Stmt
   (match s
+    [`(,(? symbol? id) := ?) (Assign-Unknown id)]
     [`(,(? symbol? id) := ,exp) (Assign id (parse/Exp exp))]
-    [`(,(? symbol? id) := ?) (Assign id (void))]
     [`(while ,test ,(? list? body)) (While (parse/Exp test) (parse/Program body))]
     [`(if ,test ,(? list? body)) (If (parse/Exp test) (parse/Program body))]
     [`(assert ,e) (Assert (parse/Exp e))]
