@@ -41,13 +41,18 @@
     [(cons (Assign var val) rst) (get-conditions tau cfg (hash-set env var (subst-exp val env)))]
     [(cons (GoTo (? Cut-Point?)) '()) '(())]
     [(cons (GoTo label) '()) (get-conditions (hash-ref cfg label) cfg env)]
-    [(Conditional pred t f) (append (map (lambda ([c : Any]) (cons pred c)) (get-conditions (hash-ref cfg t) cfg env)) (map (lambda ([c : Any]) (cons (Not pred) c)) (get-conditions (hash-ref cfg f) cfg env)))]))
+    [(Conditional pred t f)
+     (append (map (lambda ([c : Any]) (cons pred c))
+                  (get-conditions (hash-ref cfg t) cfg env))
+             (map (lambda ([c : Any]) (cons (Not pred) c))
+                  (get-conditions (hash-ref cfg f) cfg env)))]))
 
 (define (display-invariant [I : Any]) : Any
   (match I
     [(Implies left right) (format "~a => ~a" (display-invariant left) (display-invariant right))]
     [(Junction op elts) (string-join (map display-invariant elts) (format " ~a " op))]
-    [(Substitution what for in) (format "~a[~a/~a]" (display-invariant in) (display-invariant what) (display-invariant for))]
+    [(Substitution what for in)
+     (format "~a[~a/~a]" (display-invariant in) (display-invariant what) (display-invariant for))]
     [(Prim op a b) (format "~a ~a ~a" (display-invariant a) op (display-invariant b))]
     [(? symbol? a) (~a a)]
     [(? integer? a) (~a a)]
