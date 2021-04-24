@@ -1,6 +1,7 @@
 #lang typed/racket
 
 (require "parser.rkt")
+(provide (all-defined-out))
 
 (define-type CFG (Mutable-HashTable Label CNode))
 (define-type CNode (U Basic-Block Conditional))
