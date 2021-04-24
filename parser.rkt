@@ -32,6 +32,8 @@ Prim = + | * | - | / | < | > | =
 (define-type Exp (U Integer Symbol Prim))
 (struct Prim ([op : Symbol] [a : Exp] [b : Exp]) #:transparent)
 
+;; ---------------------------------------------------------------------------------------------------
+
 (define (parse/Program [s : Sexp]) : Program
   (if (list? s) (map parse/Stmt s) (error 'parse "Invalid Program ~e" s)))
 
@@ -53,6 +55,8 @@ Prim = + | * | - | / | < | > | =
 
 (define (prim? [s : Any]) : Boolean
   (list? (member s '(+ - * / > < =))))
+
+;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
   (require typed/rackunit)
