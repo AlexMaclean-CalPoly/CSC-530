@@ -8,11 +8,15 @@
 (struct Junction ([op : (U '∧ 'v)] [elts : (Listof Any)]) #:transparent)
 
 (struct Substitution ([what : Any] [for : Symbol] [in : Any]) #:transparent)
+(struct Not ([elt : Any]) #:transparent)
 
 (define-type Invariants (Mutable-HashTable Symbol Any))
 
 (define (get-invariants [cfg : CFG]) : Any
-  (append-map (lambda ([cp : Cut-Point]) (omega (hash-ref cfg cp) 'I cfg)) (filter Cut-Point? (hash-keys cfg))))
+  (append-map (lambda ([cp : Cut-Point])
+                (Implies
+                  (Junction '∧ (get-conditions (hash-ref cfg cp) cfg (make-immutable-hash)))
+                  (omega (hash-ref cfg cp) 'I cfg))) (filter Cut-Point? (hash-keys cfg))))
 
 (define (omega [tau : Any] [I : Any] [cfg : CFG]) : Any
   (match tau
@@ -26,7 +30,18 @@
     [(Conditional pred t f) (append (omega (hash-ref cfg t) I cfg) (omega (hash-ref cfg f) I cfg))]
     ['() (list I)]))
 
-; (define (get-conditions [tau : Any] [cfg : CFG]) : Any
+(define (subst-exp [e : Exp] [env : (HashTable Symbol Exp)]) : Exp
+  (match e
+    [(? symbol? s) (hash-ref env s s)]
+    [(? integer?) e]
+    [(Prim op a b) (Prim op (subst-exp a env) (subst-exp b env))]))
+
+(define (get-conditions [tau : Any] [cfg : CFG] [env : (HashTable Symbol Exp)]) : Any
+  (match tau
+    [(cons (Assign var val) rst) (get-conditions tau cfg (hash-set env var (subst-exp val env)))]
+    [(cons (GoTo (? Cut-Point?)) '()) '(())]
+    [(cons (GoTo label) '()) (get-conditions (hash-ref cfg label) cfg env)]
+    [(Conditional pred t f) (append (map (lambda ([c : Any]) (cons pred c)) (get-conditions (hash-ref cfg t) cfg env)) (map (lambda ([c : Any]) (cons (Not pred) c)) (get-conditions (hash-ref cfg f) cfg env)))]))
 
 (define (display-invariant [I : Any]) : Any
   (match I
@@ -35,13 +50,13 @@
     [(Substitution what for in) (format "~a[~a/~a]" (display-invariant in) (display-invariant what) (display-invariant for))]
     [(Prim op a b) (format "~a ~a ~a" (display-invariant a) op (display-invariant b))]
     [(? symbol? a) (~a a)]
-    [(? integer? a) (~a a)]))
+    [(? integer? a) (~a a)]
+    [(Not elt) (format "¬~a" (display-invariant elt))]))
 
 (define (display-invariants [I : Any]) : String
   (string-join (map display-invariant I) "\n"))
 
-
-(omega (list (Assert 1) (Assign 'x 2)) 'I (make-hash))
+; (omega (list (Assert 1) (Assign 'x 2)) 'I (make-hash))
 (displayln (display-invariants (get-invariants (make-CFG-program
     (list
     (Assign 'x -50)
