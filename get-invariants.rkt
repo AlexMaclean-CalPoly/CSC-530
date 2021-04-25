@@ -48,3 +48,12 @@
                   (get-conditions (list (GoTo f)) cfg env)))]
     [(cons _ rst) (get-conditions rst cfg env)]))
 
+;; Given the CNode after a cutpoint, retruns a list of paths to other cut points
+(define (get-paths [c : CNode] [cfg : CFG]) : (Listof (Listof Stmt))
+  (match c
+    [(Conditional test t f) (append (get-paths (list (GoTo t)) cfg) (get-paths (list (GoTo f)) cfg))]
+    [(list (GoTo (? Cut-Point?))) '(())]
+    [(list (GoTo label)) (get-paths (hash-ref cfg label) cfg)]
+    [(cons stmt rst) (map (λ ([path : (Listof Stmt)]) (cons (cast stmt Stmt) path))
+                          (get-paths rst cfg))]))
+

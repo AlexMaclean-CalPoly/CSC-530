@@ -20,8 +20,9 @@
     [(ImpliesL left right) (format "~a => ~a" (logic-str left) (logic-str right))]
     [(ConjunctionL clauses) (string-join (map logic-str clauses) " ∧ ")]
     [(DisjunctionL clauses) (string-join (map logic-str clauses) " ∨ ")]
-    [(SubstitutionL what for in) (format "~a[~a/~a]" (logic-str in) (logic-str what) (logic-str for))]
-    [(Prim op a b) (format "~a ~a ~a" (logic-str a) op (logic-str b))]
+    [(SubstitutionL what for in)
+     (format "(~a)[~a/~a]" (logic-str in) (logic-str what) (logic-str for))]
+    [(Prim op a b) (format "(~a ~a ~a)" (logic-str a) op (logic-str b))]
     [(NotL arg) (format "¬(~a)" (logic-str arg))]))
 
 ;; Joins multiple logical expression string representations with newlines
