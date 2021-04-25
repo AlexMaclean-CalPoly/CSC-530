@@ -11,23 +11,22 @@
           (map (λ ([x : (Listof Logic)])
                  (ConjunctionL (cons (if (start-point? cp) true 'I) x)))
                (get-conditions (hash-ref cfg cp) cfg (make-immutable-hash)))
-          (omega (hash-ref cfg cp) 'I cfg)))
+          (map (λ ([path : (Listof Stmt)])
+                 (omega path 'I))
+               (get-paths (hash-ref cfg cp) cfg))))
    (filter Cut-Point? (hash-keys cfg))))
 
 (define (start-point? [c : Cut-Point]) : Boolean
   (equal? (Cut-Point-name c) 'start))
 
-(define (omega [tau : (U CNode Stmt GoTo)] [I : Logic] [cfg : CFG]) : (Listof Logic)
+(define (omega [tau : (U Stmt (Listof Stmt))] [I : Logic]) : Logic
   (match tau
-    [(Assert p) (list (ConjunctionL (list p I)))]
-    [(Assume p) (list (ImpliesL p I))]
-    [(Assign-Unknown x) (list (SubstitutionL (gensym 'r) x I))]
-    [(Assign x e) (list (SubstitutionL e x I))]
-    [(cons S1 S2) (append-map (λ ([t : Logic]) (omega S1 t cfg)) (omega S2 I cfg))]
-    [(GoTo (? Cut-Point?)) (list I)]
-    [(GoTo label) (omega (hash-ref cfg label) I cfg)]
-    [(Conditional pred t f) (append (omega (GoTo t) I cfg) (omega (GoTo f) I cfg))]
-    ['() (list I)]))
+    [(Assert p) (ConjunctionL (list p I))]
+    [(Assume p) (ImpliesL p I)]
+    [(Assign-Unknown x) (SubstitutionL (gensym 'r) x I)]
+    [(Assign x e) (SubstitutionL e x I)]
+    [(cons S1 S2) (omega S1 (omega S2 I))]
+    ['() I]))
 
 (define (subst-exp [e : Exp] [env : (HashTable Symbol Exp)]) : Exp
   (match e
@@ -48,7 +47,7 @@
                   (get-conditions (list (GoTo f)) cfg env)))]
     [(cons _ rst) (get-conditions rst cfg env)]))
 
-;; Given the CNode after a cutpoint, retruns a list of paths to other cut points
+;; Given the CNode after a cutpoint, returns a list of paths to other cut points
 (define (get-paths [c : CNode] [cfg : CFG]) : (Listof (Listof Stmt))
   (match c
     [(Conditional test t f) (append (get-paths (list (GoTo t)) cfg) (get-paths (list (GoTo f)) cfg))]
