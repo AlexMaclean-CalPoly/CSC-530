@@ -47,8 +47,8 @@
   (make-cfg
    (list
     (Assign 'x -50)
-    (While (Prim '< 'x 0)
+    (While (Prim '< '(x 0))
            (list
-            (Assign 'x (Prim '+ 'x 'y))
-            (Assign 'y (Prim '+ 'y 1))))
-    (Assert (Prim '> 'y 0)))))
+            (Assign 'x (Prim '+ '(x y)))
+            (Assign 'y (Prim '+ '(y 1)))))
+    (Assert (Prim '> '(y 0))))))

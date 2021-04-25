@@ -23,7 +23,6 @@
   (match tau
     [(Assert p) (ConjunctionL (list p I))]
     [(Assume p) (ImpliesL p I)]
-    [(Assign-Unknown x) (SubstitutionL (gensym 'r) x I)]
     [(Assign x e) (SubstitutionL e x I)]
     [(cons S1 S2) (omega S1 (omega S2 I))]
     ['() I]))
@@ -32,7 +31,7 @@
   (match e
     [(? symbol? s) (hash-ref env s (thunk s))]
     [(? integer?) e]
-    [(Prim op a b) (Prim op (subst-exp a env) (subst-exp b env))]))
+    [(Prim op vars) (Prim op (map (lambda ([v : Exp]) (subst-exp v env)) vars))]))
 
 (define (get-conditions [tau : Any] [cfg : CFG] [env : (HashTable Symbol Exp)])
   : (Listof (Listof Logic)) 

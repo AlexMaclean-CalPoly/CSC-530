@@ -22,7 +22,7 @@
     [(DisjunctionL clauses) (string-join (map logic-str clauses) " ∨ ")]
     [(SubstitutionL what for in)
      (format "(~a)[~a/~a]" (logic-str in) (logic-str what) (logic-str for))]
-    [(Prim op a b) (format "(~a ~a ~a)" (logic-str a) op (logic-str b))]
+    [(Prim op vars) (format "(~a)" (string-join (map logic-str vars) (format " ~a " op)))]
     [(NotL arg) (format "¬(~a)" (logic-str arg))]))
 
 ;; Joins multiple logical expression string representations with newlines
