@@ -6,7 +6,7 @@
   (define program (parse/Program s))
   (define second-order-invariants (get-invariants (make-cfg program)))
   (displayln (logic-str* second-order-invariants))
-  (define I (simplify (make-I 2 2 (extract-vars program))))
+  (define I (simplify (make-I 2 1 (extract-vars program))))
   (displayln (logic-str I))
   (define first-order-invariants (map (lambda ([i : Logic]) (simplify (subst I 'I i))) second-order-invariants))
   (displayln (logic-str* first-order-invariants))

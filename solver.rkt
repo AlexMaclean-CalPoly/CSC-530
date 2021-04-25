@@ -31,7 +31,7 @@
     [(ConjunctionL clauses) (ConjunctionL (map (lambda ([c : Logic]) (subst what for c)) clauses))]
     [(DisjunctionL clauses) (DisjunctionL (map (lambda ([c : Logic]) (subst what for c)) clauses))]
     [(NotL var) (NotL (subst what for var))]
-    [(SubstitutionL w f i) (subst what for (subst w f i))]
+    [(SubstitutionL w f i) (SubstitutionL (subst what for w) f (subst what for i))]
     [(Prim op vars) (Prim op (map (lambda ([v : Exp]) (subst what for v)) vars))]
     [(? integer?) in]
     [(? boolean?) in]))
@@ -44,7 +44,8 @@
     [(ConjunctionL clauses) (ConjunctionL (map simplify clauses))]
     [(DisjunctionL clauses) (DisjunctionL (map simplify clauses))]
     [(NotL var) (NotL (simplify var))]
-    [(SubstitutionL what for in) (simplify (subst (simplify what) for in))]
+    [(SubstitutionL what for in) (subst (simplify what) for (simplify in))]
+    [(? integer?) e]
     [(? Prim?) e]
     [(? boolean?) e]
     [(? symbol?) e]))
