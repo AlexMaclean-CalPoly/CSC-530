@@ -22,16 +22,15 @@ Prim = + | * | - | / | < | > | =
 
 (define-type Program (Listof Stmt))
 
-(define-type Stmt (U While If Assert Assume Assign Assign-Unknown))
+(define-type Stmt (U While If Assert Assume Assign))
 (struct While ([test : Exp] [body : Program]) #:transparent)
 (struct If ([test : Exp] [body : Program]) #:transparent)
 (struct Assert ([test : Exp]) #:transparent)
 (struct Assume ([test : Exp]) #:transparent)
 (struct Assign ([var : Symbol] [val : Exp]) #:transparent)
-(struct Assign-Unknown ([var : Symbol]) #:transparent)
 
 (define-type Exp (U Integer Symbol Prim))
-(struct Prim ([op : Symbol] [a : Exp] [b : Exp]) #:transparent)
+(struct Prim ([op : Symbol] [vars : (Listof Exp)]) #:transparent)
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -40,7 +39,7 @@ Prim = + | * | - | / | < | > | =
 
 (define (parse/Stmt [s : Sexp]) : Stmt
   (match s
-    [`(,(? symbol? id) := ?) (Assign-Unknown id)]
+    [`(,(? symbol? id) := ?) (Assign id (gensym 'r))]
     [`(,(? symbol? id) := ,exp) (Assign id (parse/Exp exp))]
     [`(while ,test ,(? list? body)) (While (parse/Exp test) (parse/Program body))]
     [`(if ,test ,(? list? body)) (If (parse/Exp test) (parse/Program body))]
@@ -51,11 +50,11 @@ Prim = + | * | - | / | < | > | =
 (define (parse/Exp [s : Sexp]) : Exp
   (match s
     [(or (? exact-integer?) (? symbol?)) s]
-    [`(,a ,(? prim? op) ,b) (Prim (cast op Symbol) (parse/Exp a) (parse/Exp b))]
+    [`(,a ,(? prim? op) ,b) (Prim (cast op Symbol) (list (parse/Exp a) (parse/Exp b)))]
     [_ (error 'prase "Invalid Exp ~e" s)]))
 
 (define (prim? [s : Any]) : Boolean
-  (list? (member s '(+ - * / > < =))))
+  (list? (member s '(+ - * / > < = <= >=))))
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -72,8 +71,8 @@ Prim = + | * | - | / | < | > | =
                    {assert(y > 0)}})
                 (list
                  (Assign 'x -50)
-                 (While (Prim '< 'x 0)
+                 (While (Prim '< '(x 0))
                         (list
-                         (Assign 'x (Prim '+ 'x 'y))
-                         (Assign 'y (Prim '+ 'y 1))))
-                 (Assert (Prim '> 'y 0)))))
+                         (Assign 'x (Prim '+ '(x y)))
+                         (Assign 'y (Prim '+ '(y 1)))))
+                 (Assert (Prim '> '(y 0))))))

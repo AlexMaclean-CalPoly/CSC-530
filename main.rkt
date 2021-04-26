@@ -1,10 +1,16 @@
-#lang typed/racket
+#lang typed/racket/no-check
 
-(require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt")
+(require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt" "solver.rkt")
 
 (define (top-verify [s : Sexp]) : Void
-  (define second-order-invariants (get-invariants (make-cfg (parse/Program s))))
-  (displayln (logic-str* second-order-invariants)))
+  (define program (parse/Program s))
+  (define second-order-invariants (get-invariants (make-cfg program)))
+  (displayln (logic-str* second-order-invariants))
+  (define I (simplify (make-I 2 1 (extract-vars program))))
+  (displayln (logic-str I))
+  (define first-order-invariants (map (lambda ([i : Logic]) (simplify (subst I 'I i))) second-order-invariants))
+  (displayln (logic-str* first-order-invariants))
+  (void))
 
 (define (verify-cmd [args : (Vectorof String)]) : Void
   (match args
