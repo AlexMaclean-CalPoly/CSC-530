@@ -1,10 +1,8 @@
 #lang typed/racket/no-check
+
 (provide (all-defined-out))
 
-
-(require "parser.rkt"
-         "logic.rkt"
-         "control-graph.rkt")
+(require "parser.rkt" "logic.rkt" "control-graph.rkt")
 
 
 (define (extract-vars [p : Program]) : (Listof Symbol)
@@ -28,11 +26,11 @@
   (match in
     [(? symbol?) (if (equal? for in) what in)]
     [(ImpliesL left right) (ImpliesL (subst what for left) (subst what for right))]
-    [(ConjunctionL clauses) (ConjunctionL (map (lambda ([c : Logic]) (subst what for c)) clauses))]
-    [(DisjunctionL clauses) (DisjunctionL (map (lambda ([c : Logic]) (subst what for c)) clauses))]
+    [(ConjunctionL clauses) (ConjunctionL (map (λ ([c : Logic]) (subst what for c)) clauses))]
+    [(DisjunctionL clauses) (DisjunctionL (map (λ ([c : Logic]) (subst what for c)) clauses))]
     [(NotL var) (NotL (subst what for var))]
     [(SubstitutionL w f i) (SubstitutionL (subst what for w) f (subst what for i))]
-    [(Prim op vars) (Prim op (map (lambda ([v : Exp]) (subst what for v)) vars))]
+    [(Prim op vars) (Prim op (map (λ ([v : Exp]) (subst what for v)) vars))]
     [(? integer?) in]
     [(? boolean?) in]))
 
@@ -45,20 +43,11 @@
     [(DisjunctionL clauses) (DisjunctionL (map simplify clauses))]
     [(NotL var) (NotL (simplify var))]
     [(SubstitutionL what for in) (subst (simplify what) for (simplify in))]
-    [(? integer?) e]
-    [(? Prim?) e]
-    [(? boolean?) e]
-    [(? symbol?) e]))
+    [(or (? integer?) (? Prim?) (? boolean?) (? symbol?)) e]))
 
 (define (make-I [num-clauses : Integer] [num-sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
-  (DisjunctionL (map (lambda (a) (ConjunctionL (map (lambda (a) (make-sum vars)) (range num-sub-clauses)))) (range num-clauses))))
+  (DisjunctionL (map (λ (a) (ConjunctionL (map (λ (a) (make-sum vars))
+                                               (range num-sub-clauses)))) (range num-clauses))))
 
 (define (make-sum [vars : (Listof Symbols)]) : Exp
-  (Prim '>= (list (Prim '+ (map (lambda ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))
-
-;(define (make-sub-clause [num-sub-clauses : Integer]))
-  
-
-
-; x + y/x, y + 1/y
-;(simplify (SubstitutionL (Prim '+ '(x y)) 'x (SubstitutionL (Prim '+ '(y 1)) 'y (Prim '* '(x y)))))
+  (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))

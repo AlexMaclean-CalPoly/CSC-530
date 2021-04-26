@@ -1,8 +1,6 @@
 #lang typed/racket
 (provide (all-defined-out))
-(require "control-graph.rkt")
-(require "parser.rkt")
-(require "logic.rkt")
+(require "control-graph.rkt" "parser.rkt" "logic.rkt")
 
 (define (get-invariants [cfg : CFG]) : (Listof Logic)
   (append-map
