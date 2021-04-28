@@ -2,27 +2,28 @@
 
 (require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt" "solver.rkt")
 
+(define verbose-mode (make-parameter #f))
+
 (define (top-verify [s : Sexp] [clauses : Integer] [sub-clauses : Integer]) : Void
   (define program (parse/Program s))
   (define constraints (get-invariants (make-cfg program)))
-  (define invariant (simplify (make-I clauses sub-clauses (extract-vars program))))
+  (define invariant (simplify (make-invariant clauses sub-clauses (extract-vars program))))
   (define constraints-1st-order (map (λ ([i : Logic]) (simplify (subst invariant 'I i)))
-                                      constraints))
+                                     constraints))
 
-  (printf "\nSecond Order Constraints:\n~a\n" (logic-str* constraints))
-  (printf "\nHypothesized Invariant:\n~a\n" (logic-str invariant))
-  (printf "\nFirst Order Constraints:\n~a\n" (logic-str* constraints-1st-order)))
-
-(define (verify-cmd [args : (Vectorof String)]) : Void
-  (match args
-    [(vector input (? string->number clauses) (? string->number sub-clauses))
-     (call-with-file (string->path input)
-                     (λ ([s : Sexp]) (top-verify s (string->number clauses)
-                                                 (string->number sub-clauses))))]
-    [other (error "Invalid arguments")]))
-
-(define (call-with-file [infile : Path] [f : (Sexp -> Void)]) : Void
-  (f (cast (with-input-from-file infile read) Sexp)))
+  (when (verbose-mode)
+    (printf "\nSecond Order Constraints:\n~a\n" (logic-str* constraints))
+    (printf "\nHypothesized Invariant:\n~a\n" (logic-str invariant))
+    (printf "\nFirst Order Constraints:\n~a\n" (logic-str* constraints-1st-order))))
 
 (module+ main
-  (verify-cmd (current-command-line-arguments)))
+  (command-line
+   #:program "constraint solving verifier"
+   #:once-each
+   [("-v" "--verbose") "Verify with verbose messages" (verbose-mode #t)]
+   #:args (filepath ands ors)
+   (begin
+     (unless (and (string->number ands) (string->number ors))
+       (error "Conjunuction and disjunction counts must be integers"))
+     (top-verify (cast (with-input-from-file filepath read) Sexp)
+                 (string->number ands) (string->number ors)))))
