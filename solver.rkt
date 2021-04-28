@@ -3,8 +3,7 @@
 (provide (all-defined-out))
 
 (require "types.rkt")
-(require/typed racket/hash
-               [hash-union (Vect Vect [#:combine (Integer Integer -> Integer)] -> Vect)])
+
 #|
 (define (extract-vars [p : Program]) : (Listof Symbol)
   (apply set-union (map extract-vars/Stmt p)))
@@ -40,8 +39,6 @@
      (foldr (lambda ([p : (Pairof (U One Symbol) Integer)] [v : Vect]) (vect+ v (* coefficent (cdr p)) (car p))) (hash-remove in for) (hash->list what))]
     [else in]))
 |#
-(define (vect+ [a : Vect] [b : Vect]) : Vect
-  (hash-union a b #:combine +))
 
 #|
 ; Transforms a logic to remove implies, subst

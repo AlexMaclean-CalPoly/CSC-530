@@ -15,6 +15,7 @@
 ;; Predicates ----------------------------------------------------------------------------------------
 
 (define-type Vect (Immutable-HashTable (U Symbol One) (U Symbol Integer)))
+(define-type Vect-Entry (Pairof (U Symbol One) (U Symbol Integer)))
 
 (define-type Logic (U Vect ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean InvariantL))
 (struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)

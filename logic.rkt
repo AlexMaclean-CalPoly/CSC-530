@@ -13,7 +13,8 @@
     [(ImpliesL left right) (format "~a => ~a" (logic-str left) (logic-str right))]
     [(ConjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∧ "))]
     [(DisjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∨ "))]
-    [(SubstitutionL what for in) (format "(~a)[~a/~a]" (logic-str in) (logic-str what) for)]))
+    [(SubstitutionL what for in) (format "(~a)[~a/~a]" (logic-str in) (logic-str what) for)]
+    [(Vect ))
 
 ;; Joins multiple logical expression string representations with newlines
 (define (logic-str* [ls : (Listof Logic)]) : String

@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang typed/racket/no-check
 
 (require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt" "solver.rkt")
 
@@ -7,14 +7,14 @@
 (define (top-verify [s : Sexp] [clauses : Integer] [sub-clauses : Integer]) : Void
   (define program (parse s))
   (define constraints (get-constraints (make-cfg program)))
-  (define invariant (simplify (make-invariant clauses sub-clauses (extract-vars program))))
-  (define constraints-1st-order (map (λ ([i : Logic]) (simplify (subst invariant 'I i)))
-                                     constraints))
+  ;(define invariant (simplify (make-invariant clauses sub-clauses (extract-vars program))))
+  ;(define constraints-1st-order (map (λ ([i : Logic]) (simplify (subst invariant 'I i)))
+  ;                                  constraints))
 
   (when (verbose-mode)
-    (printf "\nSecond Order Constraints:\n~a\n" (logic-str* constraints))
-    (printf "\nHypothesized Invariant:\n~a\n" (logic-str invariant))
-    (printf "\nFirst Order Constraints:\n~a\n" (logic-str* constraints-1st-order))))
+    (printf "\nSecond Order Constraints:\n~a\n" (logic-str* constraints))))
+    ;(printf "\nHypothesized Invariant:\n~a\n" (logic-str invariant))
+    ;(printf "\nFirst Order Constraints:\n~a\n" (logic-str* constraints-1st-order))))
 
 (module+ main
   (command-line
