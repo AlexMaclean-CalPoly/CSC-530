@@ -32,7 +32,7 @@
     [(Prim op vars) (Prim op (map (lambda ([v : Exp]) (subst-exp v env)) vars))]))
 
 (define (get-conditions [tau : Any] [cfg : CFG] [env : (HashTable Symbol Exp)])
-  : (Listof (Listof Logic)) 
+  : (Listof (Listof Logic))
   (match tau
     [(cons (Assign var val) rst) (get-conditions rst cfg (hash-set env var (subst-exp val env)))]
     [(list (GoTo (? Cut-Point?))) '(())]
@@ -52,4 +52,3 @@
     [(list (GoTo label)) (get-paths (hash-ref cfg label) cfg)]
     [(cons stmt rst) (map (λ ([path : (Listof Stmt)]) (cons (cast stmt Stmt) path))
                           (get-paths rst cfg))]))
-

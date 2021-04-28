@@ -20,6 +20,30 @@ Prim = + | * | - | / | < | > | =
 
 |#
 
+#|
+
+Program = (Stmt ...)
+
+Stmt = (id := Exp)
+     | (id := ?)
+     | (while Pred (Stmt ...))
+     | (assert Pred)
+     | (assume Pred)
+     | (if Pred (Stmt ...))
+
+Exp = id
+    | num
+    | (Exp Prim Exp)
+
+Prim = + | * | - | /`
+
+Pred = (Pred && Pred)
+     | (Pred || Pred)
+     | (! Pred)
+     | ( ... >= 0)
+
+|#
+
 (define-type Program (Listof Stmt))
 
 (define-type Stmt (U While If Assert Assume Assign))

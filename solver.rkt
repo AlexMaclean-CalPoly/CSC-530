@@ -45,9 +45,13 @@
     [(SubstitutionL what for in) (subst (simplify what) for (simplify in))]
     [(or (? integer?) (? Prim?) (? boolean?) (? symbol?)) e]))
 
-(define (make-I [num-clauses : Integer] [num-sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
-  (DisjunctionL (map (λ (a) (ConjunctionL (map (λ (a) (make-sum vars))
-                                               (range num-sub-clauses)))) (range num-clauses))))
+(define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
+  (DisjunctionL
+   (build-list clauses (λ (_)
+                         (ConjunctionL
+                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
 
 (define (make-sum [vars : (Listof Symbols)]) : Exp
   (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))
+
+make-list
