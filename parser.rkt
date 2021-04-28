@@ -5,56 +5,42 @@
 
 Program = (Stmt ...)
 
-Stmt = (id := Exp)
-     | (id := ?)
-     | (while Exp (Stmt ...))
-     | (assert Exp)
-     | (assume Exp)
-     | (if Exp (Stmt ...))
-
-Exp = id
-    | num
-    | (Exp Prim Exp)
-
-Prim = + | * | - | / | < | > | =
-
-|#
-
-#|
-
-Program = (Stmt ...)
-
-Stmt = (id := Exp)
+Stmt = (id := Vector)
      | (id := ?)
      | (while Pred (Stmt ...))
      | (assert Pred)
      | (assume Pred)
      | (if Pred (Stmt ...))
 
-Exp = id
-    | num
-    | (Exp Prim Exp)
+Ve   = id
+     | Num
+     | (Num id)
 
-Prim = + | * | - | /`
+Vector = (Ve ...)
 
 Pred = (Pred && Pred)
      | (Pred || Pred)
      | (! Pred)
-     | ( ... >= 0)
+     | ( Vector >= 0)
 
 |#
 
 (define-type Program (Listof Stmt))
 
 (define-type Stmt (U While If Assert Assume Assign))
-(struct While ([test : Exp] [body : Program]) #:transparent)
-(struct If ([test : Exp] [body : Program]) #:transparent)
-(struct Assert ([test : Exp]) #:transparent)
-(struct Assume ([test : Exp]) #:transparent)
-(struct Assign ([var : Symbol] [val : Exp]) #:transparent)
+(struct While ([test : Logic] [body : Program]) #:transparent)
+(struct If ([test : Logic] [body : Program]) #:transparent)
+(struct Assert ([test : Logic]) #:transparent)
+(struct Assume ([test : Logic]) #:transparent)
+(struct Assign ([var : Symbol] [val : Vect]) #:transparent)
+(define-type Vect (Immutable-HashTable (U Symbol One) (U Symbol Integer)))
 
-(define-type Exp (U Integer Symbol Prim))
-(struct Prim ([op : Symbol] [vars : (Listof Exp)]) #:transparent)
+(define-type Logic (U Vect ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean Symbol))
+(struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)
+(struct ConjunctionL ([clauses : (Listof Logic)]) #:transparent)
+(struct DisjunctionL ([clauses : (Listof Logic)]) #:transparent)
+(struct SubstitutionL ([what : Logic] [for : Symbol] [in : Logic]) #:transparent)
+(struct NotL ([arg : Logic]) #:transparent)
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -63,40 +49,46 @@ Pred = (Pred && Pred)
 
 (define (parse/Stmt [s : Sexp]) : Stmt
   (match s
-    [`(,(? symbol? id) := ?) (Assign id (gensym 'r))]
-    [`(,(? symbol? id) := ,exp) (Assign id (parse/Exp exp))]
-    [`(while ,test ,(? list? body)) (While (parse/Exp test) (parse/Program body))]
-    [`(if ,test ,(? list? body)) (If (parse/Exp test) (parse/Program body))]
-    [`(assert ,e) (Assert (parse/Exp e))]
-    [`(assume ,e) (Assume (parse/Exp e))]
+    [`(,(? symbol? id) := ?) (Assign id (make-immutable-hash (list (cons (gensym 'r) 1))))]
+    [`(,(? symbol? id) := ,exp) (Assign id (parse/Vect exp))]
+    [`(while ,test ,(? list? body)) (While (parse/Logic test) (parse/Program body))]
+    [`(if ,test ,(? list? body)) (If (parse/Logic test) (parse/Program body))]
+    [`(assert ,e) (Assert (parse/Logic e))]
+    [`(assume ,e) (Assume (parse/Logic e))]
     [_ (error 'parse "Invalid Stmt ~e" s)]))
 
-(define (parse/Exp [s : Sexp]) : Exp
+(define (parse/Logic [s : Sexp]) : Logic
   (match s
-    [(or (? exact-integer?) (? symbol?)) s]
-    [`(,a ,(? prim? op) ,b) (Prim (cast op Symbol) (list (parse/Exp a) (parse/Exp b)))]
-    [_ (error 'prase "Invalid Exp ~e" s)]))
+    [`(,a && ,b) (ConjunctionL (list (parse/Logic a) (parse/Logic b)))]
+    [`(,a || ,b) (DisjunctionL (list (parse/Logic a) (parse/Logic b)))]
+    [`(! ,a) (NotL (parse/Logic a))]
+    [`(,v >= 0) (parse/Vect v)]
+    [_ (error 'parse "Invalid Logic ~e" s)]))
 
-(define (prim? [s : Any]) : Boolean
-  (list? (member s '(+ - * / > < = <= >=))))
+(define (parse/Vect [s : Sexp]) : Vect
+  (unless (list? s)
+    (error 'parse "Invalid Vect ~e" s))
+  (make-immutable-hash (map parse/Ve s)))
+
+(define (parse/Ve [s : Sexp]) : (Pairof (U One Symbol) Integer)
+  (match s
+    [`(,(? exact-integer? a) ,(? symbol? b)) (cons b a)]
+    [(? exact-integer?) (cons 1 s)]
+    [(? symbol?) (cons s 1)]
+    [_ (error 'parse "Invalid Vector Entry ~e" s)]))
+
 
 ;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
   (require typed/rackunit)
 
-  (check-equal? (parse/Program
-                 '{{x := -50}
-                   {while (x < 0)
+  (check-equal? (parse/Program 
+                 '{{x := (-50)}
+                   {while (! ((x) >= 0))
                           {
-                           {x := (x + y)}
-                           {y := (y + 1)}
+                           {x := (x y)}
+                           {y := (y 1)}
                            }}
-                   {assert(y > 0)}})
-                (list
-                 (Assign 'x -50)
-                 (While (Prim '< '(x 0))
-                        (list
-                         (Assign 'x (Prim '+ '(x y)))
-                         (Assign 'y (Prim '+ '(y 1)))))
-                 (Assert (Prim '> '(y 0))))))
+                   {assert((y -1) >= 0)}})
+                (list)))

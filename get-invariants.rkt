@@ -7,8 +7,8 @@
    (λ ([cp : Cut-Point])
      (map ImpliesL
           (map (λ ([x : (Listof Logic)])
-                 (ConjunctionL (cons (if (start-point? cp) true 'I) x)))
-               (get-conditions (hash-ref cfg cp) cfg (make-immutable-hash)))
+                 (ConjunctionL (list (if (start-point? cp) true 'I) x)))
+               (get-conditions (hash-ref cfg cp) cfg))
           (map (λ ([path : (Listof Stmt)])
                  (omega path 'I))
                (get-paths (hash-ref cfg cp) cfg))))
@@ -25,24 +25,17 @@
     [(cons S1 S2) (omega S1 (omega S2 I))]
     ['() I]))
 
-(define (subst-exp [e : Exp] [env : (HashTable Symbol Exp)]) : Exp
-  (match e
-    [(? symbol? s) (hash-ref env s (thunk s))]
-    [(? integer?) e]
-    [(Prim op vars) (Prim op (map (lambda ([v : Exp]) (subst-exp v env)) vars))]))
-
-(define (get-conditions [tau : Any] [cfg : CFG] [env : (HashTable Symbol Exp)])
-  : (Listof (Listof Logic))
+(define (get-conditions [tau : Any] [cfg : CFG]) : (Listof Logic)
   (match tau
-    [(cons (Assign var val) rst) (get-conditions rst cfg (hash-set env var (subst-exp val env)))]
-    [(list (GoTo (? Cut-Point?))) '(())]
-    [(list (GoTo label)) (get-conditions (hash-ref cfg label) cfg env)]
+    [(cons (Assign var val) rst) (map (lambda ([l : Logic]) (SubstitutionL val var l)) (get-conditions rst cfg))]
+    [(list (GoTo (? Cut-Point?))) '(#t) ]
+    [(list (GoTo label)) (get-conditions (hash-ref cfg label) cfg)]
     [(Conditional pred t f)
-     (append (map (λ ([c : (Listof Logic)]) (cons (subst-exp pred env) c))
-                  (get-conditions (list (GoTo t)) cfg env))
-             (map (λ ([c : (Listof Logic)]) (cons (NotL (subst-exp pred env)) c))
-                  (get-conditions (list (GoTo f)) cfg env)))]
-    [(cons _ rst) (get-conditions rst cfg env)]))
+     (append (map (λ ([c : Logic]) (ConjunctionL (list pred c)))
+                  (get-conditions (list (GoTo t)) cfg))
+             (map (λ ([c : Logic]) (ConjunctionL (list (NotL pred) c)))
+                  (get-conditions (list (GoTo f)) cfg)))]
+    [(cons _ rst) (get-conditions rst cfg)]))
 
 ;; Given the CNode after a cutpoint, returns a list of paths to other cut points
 (define (get-paths [c : CNode] [cfg : CFG]) : (Listof (Listof Stmt))

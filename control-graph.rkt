@@ -8,7 +8,7 @@
 (define-type CNode (U Basic-Block Conditional))
 (define-type Basic-Block (Listof (U Stmt GoTo)))
 (struct GoTo ([next : Label]) #:transparent)
-(struct Conditional ([pred : Exp] [t : Label] [f : Label]) #:transparent)
+(struct Conditional ([pred : Logic] [t : Label] [f : Label]) #:transparent)
 
 (define-type Label (U Symbol Cut-Point))
 (struct Cut-Point ([name : Symbol]) #:transparent)

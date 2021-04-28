@@ -3,12 +3,6 @@
 (provide (all-defined-out))
 (require "parser.rkt")
 
-(define-type Logic (U Exp ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean))
-(struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)
-(struct ConjunctionL ([clauses : (Listof Logic)]) #:transparent)
-(struct DisjunctionL ([clauses : (Listof Logic)]) #:transparent)
-(struct SubstitutionL ([what : Logic] [for : Symbol] [in : Logic]) #:transparent)
-(struct NotL ([arg : Logic]) #:transparent)
 
 ;; ---------------------------------------------------------------------------------------------------
 
