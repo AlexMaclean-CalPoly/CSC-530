@@ -34,6 +34,17 @@
     [(? integer?) in]
     [(? boolean?) in]))
 
+(define (subst-Vect [what : Vect] [for : Symbol] [in : Vect]) : Vect
+  (cond
+    [(hash-has-key? in for)
+     (define coefficent (hash-ref in for))
+     (foldr (lambda ([p : (Pairof (U One Symbol) Integer)] [v : Vect]) (vect+ v (* coefficent (cdr p)) (car p))) (hash-remove in for) (hash->list what))]
+    [else in]))
+
+(define (vect+ [v : Vect] [a : Integer] [x : (U One Symbol)]) : Vect
+  (hash-set v a (+ x (hash-ref v a 0))))
+
+
 ; Transforms a logic to remove implies, subst
 (define (simplify [e : Logic]) : Logic
   (match e
