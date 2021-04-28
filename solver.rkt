@@ -21,7 +21,7 @@
     [(? symbol?) (list e)]
     [(? integer?) '()]
     [(Prim op vars) (apply set-union (map extract-vars/Exp vars))]))
-    
+
 (define (subst [what : Logic] [for : Symbol] [in : Logic]) : Logic
   (match in
     [(? symbol?) (if (equal? for in) what in)]
@@ -64,5 +64,3 @@
 
 (define (make-sum [vars : (Listof Symbols)]) : Exp
   (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))
-
-make-list
