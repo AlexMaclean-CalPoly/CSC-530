@@ -43,24 +43,31 @@
     [(? boolean?) in]
     [(or (? InvariantL?) (? ImpliesL?) (? SubstitutionL?)) (error 'remove-subst "No invariants or implies should be present")]))
 
-
-#|
 (define (extract-vars [p : Program]) : (Listof Symbol)
   (apply set-union (map extract-vars/Stmt p)))
 
 (define (extract-vars/Stmt [s : Stmt]) : (Listof Symbol)
   (match s
-    [(Assign var val) (set-union (list var) (extract-vars/Exp val))]
-    [(Assert p) (extract-vars/Exp p)]
-    [(Assume p) (extract-vars/Exp p)]
-    [(While test body) (set-union (extract-vars/Exp test) (extract-vars body))]
-    [(If test body) (set-union (extract-vars/Exp test) (extract-vars body))]))
+    [(Assign var val) (set-union (list var) (extract-vars/Vect val))]
+    [(Assert p) (extract-vars/Logic p)]
+    [(Assume p) (extract-vars/Logic p)]
+    [(While test body) (set-union (extract-vars/Logic test) (extract-vars body))]
+    [(If test body) (set-union (extract-vars/Logic test) (extract-vars body))]))
 
-(define (extract-vars/Exp [e : Exp]) : (Listof Symbol)
-  (match e
-    [(? symbol?) (list e)]
-    [(? integer?) '()]))
+(define (extract-vars/Logic [l : Logic]) : (Listof Symbols)
+  (match l
+    [(ConjunctionL clauses) (apply set-union (map extract-vars/Logic clauses))]
+    [(DisjunctionL clauses) (apply set-union (map extract-vars/Logic clauses))]
+    [(NotL var) (extract-vars/Logic var)]
+    [(? hash?) (extract-vars/Vect l)]
+    [(? boolean?) '()]))
 
+(define (extract-vars/Vect [v : Vect-i]) : (Listof Symbols)
+  (filter symbol? (hash-keys v)))
+
+
+
+#|
 (define (subst [what : Logic] [for : Symbol] [in : Logic]) : Logic
   (match in
     [(? symbol?) (if (equal? for in) what in)]
@@ -92,11 +99,16 @@
     [(SubstitutionL what for in) (subst (simplify what) for (simplify in))]
     [(or (? integer?) (? boolean?) (? symbol?)) e]))
 |#
-;;(define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
-;;  (DisjunctionL
-;;   (build-list clauses (λ (_)
-;;                         (ConjunctionL
-;;                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
+(define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
+  (DisjunctionL
+   (build-list clauses (λ (_)
+                         (ConjunctionL
+                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
 
-;;(define (make-sum [vars : (Listof Symbols)]) : Exp
-;;  (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))
+(define (make-const) : Vect-i
+  (make-immutable-hash (list (cons (gensym 'u) 1))))
+
+(define (make-sum [vars : (Listof Symbols)]) : Vect-x
+  (make-immutable-hash (cons (cons 1 (make-const)) (map (lambda ([v : Symbol]) (cons v (make-const))) vars))))
+
+                       

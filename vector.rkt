@@ -35,5 +35,3 @@
                 #hash((x . 20) (y . 2)))
   (check-equal? (vect-subst #hash((x . 3) (y . 4)) 'x #hash((x . #hash((a1 . 1) (a2 . 4))) (y . #hash((a3 . 1) (a4 . 2)))))
                 #hash()))
-  ;(check-equal? (vect-subst #hash((y . 2) (z . 3)) 'x #hash((x . 20) (y . 10)))
-                ;#hash((y . 50) (z . 60))))
