@@ -1,23 +1,19 @@
 #lang typed/racket
 
 (provide (all-defined-out))
-(require "parser.rkt")
 
-
-;; ---------------------------------------------------------------------------------------------------
+(require "types.rkt")
 
 ;; Returns a nice pretty string representation of a logical expression
 (define (logic-str [l : Logic]) : String
   (match l
-    [(or (? symbol?) (? integer?)) (~a l)]
     [(? boolean?) (if l "true" "false")]
+    [(InvariantL id) (~a id)]
+    [(NotL arg) (format "¬(~a)" (logic-str arg))]
     [(ImpliesL left right) (format "~a => ~a" (logic-str left) (logic-str right))]
-    [(ConjunctionL clauses) (string-join (map logic-str clauses) " ∧ ")]
-    [(DisjunctionL clauses) (string-join (map logic-str clauses) " ∨ ")]
-    [(SubstitutionL what for in)
-     (format "(~a)[~a/~a]" (logic-str in) (logic-str what) (logic-str for))]
-    [(Prim op vars) (format "(~a)" (string-join (map logic-str vars) (format " ~a " op)))]
-    [(NotL arg) (format "¬(~a)" (logic-str arg))]))
+    [(ConjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∧ "))]
+    [(DisjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∨ "))]
+    [(SubstitutionL what for in) (format "(~a)[~a/~a]" (logic-str in) (logic-str what) for)]))
 
 ;; Joins multiple logical expression string representations with newlines
 (define (logic-str* [ls : (Listof Logic)]) : String

@@ -1,12 +1,12 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt" "solver.rkt")
 
 (define verbose-mode (make-parameter #f))
 
 (define (top-verify [s : Sexp] [clauses : Integer] [sub-clauses : Integer]) : Void
-  (define program (parse/Program s))
-  (define constraints (get-invariants (make-cfg program)))
+  (define program (parse s))
+  (define constraints (get-constraints (make-cfg program)))
   (define invariant (simplify (make-invariant clauses sub-clauses (extract-vars program))))
   (define constraints-1st-order (map (λ ([i : Logic]) (simplify (subst invariant 'I i)))
                                      constraints))

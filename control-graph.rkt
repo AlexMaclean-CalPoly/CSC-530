@@ -1,19 +1,8 @@
 #lang typed/racket
 
-(require "parser.rkt")
-(provide (all-defined-out))
+(provide make-cfg)
 
-(define-type CFG (Mutable-HashTable Label CNode))
-
-(define-type CNode (U Basic-Block Conditional))
-(define-type Basic-Block (Listof (U Stmt GoTo)))
-(struct GoTo ([next : Label]) #:transparent)
-(struct Conditional ([pred : Logic] [t : Label] [f : Label]) #:transparent)
-
-(define-type Label (U Symbol Cut-Point))
-(struct Cut-Point ([name : Symbol]) #:transparent)
-
-;; ---------------------------------------------------------------------------------------------------
+(require "types.rkt")
 
 (define (make-cfg [p : Program]) : CFG
   (define cfg : CFG (make-hash))
@@ -41,14 +30,3 @@
     [(cons other rst) (cons other (cfg/block cfg rst next))]
     ['() (list (GoTo next))]))
 
-;; ---------------------------------------------------------------------------------------------------
-
-(module+ test
-  (make-cfg
-   (list
-    (Assign 'x -50)
-    (While (Prim '< '(x 0))
-           (list
-            (Assign 'x (Prim '+ '(x y)))
-            (Assign 'y (Prim '+ '(y 1)))))
-    (Assert (Prim '> '(y 0))))))

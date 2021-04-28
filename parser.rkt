@@ -1,5 +1,8 @@
 #lang typed/racket
-(provide (all-defined-out))
+
+(provide parse)
+
+(require "types.rkt")
 
 #|
 
@@ -21,28 +24,12 @@ Vector = (Ve ...)
 Pred = (Pred && Pred)
      | (Pred || Pred)
      | (! Pred)
-     | ( Vector >= 0)
+     | (Vector >= 0)
 
 |#
 
-(define-type Program (Listof Stmt))
-
-(define-type Stmt (U While If Assert Assume Assign))
-(struct While ([test : Logic] [body : Program]) #:transparent)
-(struct If ([test : Logic] [body : Program]) #:transparent)
-(struct Assert ([test : Logic]) #:transparent)
-(struct Assume ([test : Logic]) #:transparent)
-(struct Assign ([var : Symbol] [val : Vect]) #:transparent)
-(define-type Vect (Immutable-HashTable (U Symbol One) (U Symbol Integer)))
-
-(define-type Logic (U Vect ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean Symbol))
-(struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)
-(struct ConjunctionL ([clauses : (Listof Logic)]) #:transparent)
-(struct DisjunctionL ([clauses : (Listof Logic)]) #:transparent)
-(struct SubstitutionL ([what : Logic] [for : Symbol] [in : Logic]) #:transparent)
-(struct NotL ([arg : Logic]) #:transparent)
-
-;; ---------------------------------------------------------------------------------------------------
+(define (parse [s : Sexp]) : Program
+  (parse/Program s))
 
 (define (parse/Program [s : Sexp]) : Program
   (if (list? s) (map parse/Stmt s) (error 'parse "Invalid Program ~e" s)))
@@ -83,7 +70,7 @@ Pred = (Pred && Pred)
 (module+ test
   (require typed/rackunit)
 
-  (check-equal? (parse/Program 
+  (check-equal? (parse/Program
                  '{{x := (-50)}
                    {while (! ((x) >= 0))
                           {

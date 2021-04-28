@@ -1,10 +1,11 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide (all-defined-out))
 
-(require "parser.rkt" "logic.rkt" "control-graph.rkt")
-
-
+(require "types.rkt")
+(require/typed racket/hash
+               [hash-union (Vect Vect [#:combine (Integer Integer -> Integer)] -> Vect)])
+#|
 (define (extract-vars [p : Program]) : (Listof Symbol)
   (apply set-union (map extract-vars/Stmt p)))
 
@@ -19,8 +20,7 @@
 (define (extract-vars/Exp [e : Exp]) : (Listof Symbol)
   (match e
     [(? symbol?) (list e)]
-    [(? integer?) '()]
-    [(Prim op vars) (apply set-union (map extract-vars/Exp vars))]))
+    [(? integer?) '()]))
 
 (define (subst [what : Logic] [for : Symbol] [in : Logic]) : Logic
   (match in
@@ -30,7 +30,6 @@
     [(DisjunctionL clauses) (DisjunctionL (map (λ ([c : Logic]) (subst what for c)) clauses))]
     [(NotL var) (NotL (subst what for var))]
     [(SubstitutionL w f i) (SubstitutionL (subst what for w) f (subst what for i))]
-    [(Prim op vars) (Prim op (map (λ ([v : Exp]) (subst what for v)) vars))]
     [(? integer?) in]
     [(? boolean?) in]))
 
@@ -40,11 +39,11 @@
      (define coefficent (hash-ref in for))
      (foldr (lambda ([p : (Pairof (U One Symbol) Integer)] [v : Vect]) (vect+ v (* coefficent (cdr p)) (car p))) (hash-remove in for) (hash->list what))]
     [else in]))
+|#
+(define (vect+ [a : Vect] [b : Vect]) : Vect
+  (hash-union a b #:combine +))
 
-(define (vect+ [v : Vect] [a : Integer] [x : (U One Symbol)]) : Vect
-  (hash-set v a (+ x (hash-ref v a 0))))
-
-
+#|
 ; Transforms a logic to remove implies, subst
 (define (simplify [e : Logic]) : Logic
   (match e
@@ -54,13 +53,13 @@
     [(DisjunctionL clauses) (DisjunctionL (map simplify clauses))]
     [(NotL var) (NotL (simplify var))]
     [(SubstitutionL what for in) (subst (simplify what) for (simplify in))]
-    [(or (? integer?) (? Prim?) (? boolean?) (? symbol?)) e]))
+    [(or (? integer?) (? boolean?) (? symbol?)) e]))
+|#
+;;(define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
+;;  (DisjunctionL
+;;   (build-list clauses (λ (_)
+;;                         (ConjunctionL
+;;                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
 
-(define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
-  (DisjunctionL
-   (build-list clauses (λ (_)
-                         (ConjunctionL
-                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
-
-(define (make-sum [vars : (Listof Symbols)]) : Exp
-  (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))
+;;(define (make-sum [vars : (Listof Symbols)]) : Exp
+;;  (Prim '>= (list (Prim '+ (map (λ ([v : Symbol]) (Prim '* (list v (gensym 'u)))) vars)) 0)))

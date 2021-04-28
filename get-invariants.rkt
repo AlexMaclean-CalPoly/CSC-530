@@ -1,16 +1,18 @@
 #lang typed/racket
-(provide (all-defined-out))
-(require "control-graph.rkt" "parser.rkt" "logic.rkt")
 
-(define (get-invariants [cfg : CFG]) : (Listof Logic)
+(provide get-constraints)
+
+(require "types.rkt")
+
+(define (get-constraints [cfg : CFG]) : (Listof Logic)
   (append-map
    (λ ([cp : Cut-Point])
      (map ImpliesL
-          (map (λ ([x : (Listof Logic)])
-                 (ConjunctionL (list (if (start-point? cp) true 'I) x)))
+          (map (λ ([x : Logic])
+                 (ConjunctionL (list (if (start-point? cp) #t (InvariantL 'I)) x)))
                (get-conditions (hash-ref cfg cp) cfg))
           (map (λ ([path : (Listof Stmt)])
-                 (omega path 'I))
+                 (omega path (InvariantL 'I)))
                (get-paths (hash-ref cfg cp) cfg))))
    (filter Cut-Point? (hash-keys cfg))))
 
@@ -27,7 +29,7 @@
 
 (define (get-conditions [tau : Any] [cfg : CFG]) : (Listof Logic)
   (match tau
-    [(cons (Assign var val) rst) (map (lambda ([l : Logic]) (SubstitutionL val var l)) (get-conditions rst cfg))]
+    [(cons (Assign var val) rst) (map (λ ([l : Logic]) (SubstitutionL val var l)) (get-conditions rst cfg))]
     [(list (GoTo (? Cut-Point?))) '(#t) ]
     [(list (GoTo label)) (get-conditions (hash-ref cfg label) cfg)]
     [(Conditional pred t f)
