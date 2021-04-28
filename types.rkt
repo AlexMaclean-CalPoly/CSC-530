@@ -10,18 +10,20 @@
 (struct If ([test : Logic] [body : Program]) #:transparent)
 (struct Assert ([test : Logic]) #:transparent)
 (struct Assume ([test : Logic]) #:transparent)
-(struct Assign ([var : Symbol] [val : Vect]) #:transparent)
+(struct Assign ([var : Symbol] [val : Vect-i]) #:transparent)
 
 ;; Predicates ----------------------------------------------------------------------------------------
 
-(define-type Vect (Immutable-HashTable (U Symbol One) (U Symbol Integer)))
-(define-type Vect-Entry (Pairof (U Symbol One) (U Symbol Integer)))
+(define-type Vect-i (Immutable-HashTable Variable Integer))
+(define-type Vect-x (Immutable-HashTable Variable Vect-i))
 
-(define-type Logic (U Vect ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean InvariantL))
+(define-type Variable (U Symbol One))
+
+(define-type Logic (U Vect-i Vect-x ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean InvariantL))
 (struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)
 (struct ConjunctionL ([clauses : (Listof Logic)]) #:transparent)
 (struct DisjunctionL ([clauses : (Listof Logic)]) #:transparent)
-(struct SubstitutionL ([what : Vect] [for : Symbol] [in : Logic]) #:transparent)
+(struct SubstitutionL ([what : Vect-i] [for : Symbol] [in : Logic]) #:transparent)
 (struct InvariantL ([id : Symbol]) #:transparent)
 (struct NotL ([arg : Logic]) #:transparent)
 

@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang typed/racket/no-check
 
 (provide (all-defined-out))
 
@@ -14,7 +14,7 @@
     [(ConjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∧ "))]
     [(DisjunctionL clauses) (format "(~a)" (string-join (map logic-str clauses) " ∨ "))]
     [(SubstitutionL what for in) (format "(~a)[~a/~a]" (logic-str in) (logic-str what) for)]
-    [(Vect ))
+    [(? hash?) (format "(~a)" (string-join (hash-map l (lambda ([p : Symbol] [i : Integer]) (format "(~a * ~a)" i p))) " + "))])) 
 
 ;; Joins multiple logical expression string representations with newlines
 (define (logic-str* [ls : (Listof Logic)]) : String

@@ -52,7 +52,7 @@ Pred = (Pred && Pred)
     [`(,v >= 0) (parse/Vect v)]
     [_ (error 'parse "Invalid Logic ~e" s)]))
 
-(define (parse/Vect [s : Sexp]) : Vect
+(define (parse/Vect [s : Sexp]) : Vect-i
   (unless (list? s)
     (error 'parse "Invalid Vect ~e" s))
   (make-immutable-hash (map parse/Ve s)))
