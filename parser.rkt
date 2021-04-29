@@ -2,7 +2,7 @@
 
 (provide parse)
 
-(require "types.rkt")
+(require "types.rkt" "vector.rkt")
 
 #|
 
@@ -15,11 +15,9 @@ Stmt = (id := Vector)
      | (assume Pred)
      | (if Pred (Stmt ...))
 
-Ve   = id
-     | Num
-     | (Num id)
-
-Vector = (Ve ...)
+Vector = id
+       | num
+       | (Vector + Vector)
 
 Pred = (Pred && Pred)
      | (Pred || Pred)
@@ -53,29 +51,23 @@ Pred = (Pred && Pred)
     [_ (error 'parse "Invalid Logic ~e" s)]))
 
 (define (parse/Vect [s : Sexp]) : Vect-i
-  (unless (list? s)
-    (error 'parse "Invalid Vect ~e" s))
-  (make-immutable-hash (map parse/Ve s)))
-
-(define (parse/Ve [s : Sexp]) : (Pairof (U One Symbol) Integer)
   (match s
-    [`(,(? exact-integer? a) ,(? symbol? b)) (cons b a)]
-    [(? exact-integer?) (cons 1 s)]
-    [(? symbol?) (cons s 1)]
-    [_ (error 'parse "Invalid Vector Entry ~e" s)]))
-
+    [(? exact-integer?) (make-immutable-hash (list (cons 1 s)))]
+    [(? symbol?) (make-immutable-hash (list (cons s 1)))]
+    [`(,a + ,b) (vect-i+ (parse/Vect a) (parse/Vect b))]
+    [_ (error 'parse "Invalid Vector ~e" s)]))
 
 ;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
   (require typed/rackunit)
 
-  (check-equal? (parse/Program
-                 '{{x := (-50)}
-                   {while (! ((x) >= 0))
+  (check-equal? (parse
+                 '{{x := -50}
+                   {while (! (x >= 0))
                           {
-                           {x := (x y)}
-                           {y := (y 1)}
+                           {x := (x + y)}
+                           {y := (y + 1)}
                            }}
-                   {assert((y -1) >= 0)}})
+                   {assert((y + -1) >= 0)}})
                 (list)))

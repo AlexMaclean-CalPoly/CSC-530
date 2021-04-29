@@ -19,7 +19,7 @@
 (define (vect-str [v : (U Vect-x Vect-i)]) : String
   (format "(~a)"
           (string-join
-           (hash-map v (lambda ([var : Variable] [val : (U Integer Vect-i)])
+           (hash-map v (λ ([var : Variable] [val : (U Integer Vect-i)])
                          (format "(~a * ~a)" var (if (integer? val) val (vect-str val))))) " + ")))
 
 ;; Joins multiple logical expression string representations with newlines

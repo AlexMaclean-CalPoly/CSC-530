@@ -1,6 +1,7 @@
 #lang typed/racket/no-check
 
-(require "parser.rkt" "logic.rkt" "get-invariants.rkt" "control-graph.rkt" "solver.rkt")
+(require "parser.rkt" "logic.rkt" "get-constraints.rkt"
+         "control-graph.rkt" "solver.rkt" "make-invariant.rkt")
 
 (define verbose-mode (make-parameter #f))
 
