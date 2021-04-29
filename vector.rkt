@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang typed/racket/no-check
 
 (provide (all-defined-out))
 
@@ -26,6 +26,10 @@
   (make-immutable-hash
    (hash-map v (λ ([var : Variable] [coef : Integer]) (cons var (* i coef))))))
 
+(define (vect-x*int [v : Vect-x] [i : Integer]) : Vect-x
+  (make-immutable-hash
+   (hash-map v (λ ([var : Variable] [coef : Vect-i]) (cons var (vect-i*int coef i))))))
+
 (define (vect-i*constant [v : Vect-i] [c : Vect-i]) : Vect-x
   (make-immutable-hash
    (hash-map v (λ ([var : Variable] [coef : Integer]) (cons var (vect-i*int c coef))))))
@@ -33,6 +37,12 @@
 (define (vect-subst [what : Vect-i] [for : Symbol] [in : Vect-x]) : Vect-x
   (if (hash-has-key? in for)
       (vect-x+ (vect-i*constant what (hash-ref in for)) (hash-remove in for)) in))
+
+(define (negate-vect [v : (U Vect-i Vect-x)]) : (U Vect-i Vect-x)
+  (if (hash? (first (hash-values v)))
+      (vect-x+ (vect-x*int v -1) #hash((1 . #hash((1 . -1)))))
+      (vect-i+ (vect-i*int v -1) #hash((1 . -1)))))
+   
 
 (module+ test
   (require typed/rackunit)
@@ -43,4 +53,5 @@
   (check-equal? (vect-subst #hash((x . 3) (y . 4)) 'x
                             #hash((x . #hash((a1 . 1) (a2 . 4))) (y . #hash((a3 . 1) (a4 . 2)))))
                 #hash((x . #hash((a1 . 3) (a2 . 12)))
-                      (y . #hash((a1 . 4) (a2 . 16) (a3 . 1) (a4 . 2))))))
+                      (y . #hash((a1 . 4) (a2 . 16) (a3 . 1) (a4 . 2)))))
+  (check-equal? (negate-vect #hash((1 . 5) (x . 4))) #hash((1 . -6) (x . -4))))

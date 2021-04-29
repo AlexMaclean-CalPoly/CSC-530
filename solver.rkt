@@ -1,9 +1,11 @@
 #lang typed/racket/no-check
 
-(provide (all-defined-out))
+(provide simplify)
 
 (require "types.rkt" "vector.rkt")
 
+(define (simplify [l : Logic]) : Logic
+  (remove-not (remove-subst (remove-implies l)) #t))
 
 (define (remove-implies [l : Logic]) : Logic
   (match l
@@ -34,3 +36,16 @@
     [(? boolean?) in]
     [(or (? InvariantL?) (? ImpliesL?) (? SubstitutionL?))
      (error 'remove-subst "No invariants or implies should be present")]))
+
+(define (remove-not [l : Logic] [t : Boolean]) : Logic
+  (match l
+    [(NotL var) (remove-not var (not t))]
+    [(? boolean?) (equal? t l)]
+    [(ConjunctionL clauses) ((if t ConjunctionL DisjunctionL) (map (lambda ([c : Logic]) (remove-not c t)) clauses))]
+    [(DisjunctionL clauses) ((if t DisjunctionL ConjunctionL) (map (lambda ([c : Logic]) (remove-not c t)) clauses))]
+    [(? hash?) (if t l (negate-vect l))]))
+
+
+                                
+
+
