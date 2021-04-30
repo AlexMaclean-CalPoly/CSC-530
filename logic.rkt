@@ -1,4 +1,4 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide (all-defined-out))
 
@@ -16,7 +16,7 @@
     [(SubstitutionL what for in) (format "(~a)[~a/~a]" (logic-str in) (vect-str what) for)]
     [(? hash?) (format "(~a >= 0)" (vect-str l))]))
 
-(define (vect-str [v : (U Vect-x Vect-i)]) : String
+(define (vect-str [v : Vect]) : String
   (format "(~a)"
           (string-join
            (hash-map v (λ ([var : Variable] [val : (U Integer Vect-i)])

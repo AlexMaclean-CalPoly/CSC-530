@@ -1,4 +1,4 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide parse)
 
@@ -18,6 +18,8 @@ Stmt = (id := Vector)
 Vector = id
        | num
        | (Vector + Vector)
+       | (Vector * num)
+       | (num * Vector)
 
 Pred = (Pred && Pred)
      | (Pred || Pred)
@@ -48,6 +50,7 @@ Pred = (Pred && Pred)
     [`(,a || ,b) (DisjunctionL (list (parse/Logic a) (parse/Logic b)))]
     [`(! ,a) (NotL (parse/Logic a))]
     [`(,v >= 0) (parse/Vect v)]
+    [`(,v < 0) (NotL (parse/Vect v))]
     [_ (error 'parse "Invalid Logic ~e" s)]))
 
 (define (parse/Vect [s : Sexp]) : Vect-i
@@ -55,6 +58,8 @@ Pred = (Pred && Pred)
     [(? exact-integer?) (make-immutable-hash (list (cons 1 s)))]
     [(? symbol?) (make-immutable-hash (list (cons s 1)))]
     [`(,a + ,b) (vect-i+ (parse/Vect a) (parse/Vect b))]
+    [`(,v * ,(? exact-integer? i)) (vect-i*int (parse/Vect v) i)]
+    [`(,(? exact-integer? i) * ,v) (vect-i*int (parse/Vect v) i)]
     [_ (error 'parse "Invalid Vector ~e" s)]))
 
 ;; ---------------------------------------------------------------------------------------------------
@@ -64,10 +69,16 @@ Pred = (Pred && Pred)
 
   (check-equal? (parse
                  '{{x := -50}
-                   {while (! (x >= 0))
+                   {while (x < 0)
                           {
                            {x := (x + y)}
                            {y := (y + 1)}
                            }}
                    {assert((y + -1) >= 0)}})
-                (list)))
+                (list
+                 (Assign 'x '#hash((1 . -50)))
+                 (While
+                  (NotL '#hash((x . 1)))
+                  (list (Assign 'x #hash((x . 1) (y . 1)))
+                        (Assign 'y #hash((1 . 1) (y . 1)))))
+                 (Assert '#hash((1 . -1) (y . 1))))))

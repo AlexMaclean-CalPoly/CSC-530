@@ -1,4 +1,4 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide simplify)
 
@@ -27,9 +27,9 @@
     [(or (? InvariantL?) (? ImpliesL?))
      (error 'remove-subst "No invariants or implies should be present")]))
 
-(define (subst-vect [what : Vect] [for : Symbol] [in : Logic]) : Logic
+(define (subst-vect [what : Vect-i] [for : Symbol] [in : Logic]) : Logic
   (match in
-    [(? hash?) (vect-subst what for in)]
+    [(? hash?) (vect-subst what for (cast in Vect-x))]
     [(ConjunctionL clauses) (ConjunctionL (map (λ ([c : Logic]) (subst-vect what for c)) clauses))]
     [(DisjunctionL clauses) (DisjunctionL (map (λ ([c : Logic]) (subst-vect what for c)) clauses))]
     [(NotL var) (NotL (subst-vect what for var))]
@@ -41,11 +41,9 @@
   (match l
     [(NotL var) (remove-not var (not t))]
     [(? boolean?) (equal? t l)]
-    [(ConjunctionL clauses) ((if t ConjunctionL DisjunctionL) (map (lambda ([c : Logic]) (remove-not c t)) clauses))]
-    [(DisjunctionL clauses) ((if t DisjunctionL ConjunctionL) (map (lambda ([c : Logic]) (remove-not c t)) clauses))]
+    [(ConjunctionL clauses)
+     ((if t ConjunctionL DisjunctionL) (map (λ ([c : Logic]) (remove-not c t)) clauses))]
+    [(DisjunctionL clauses)
+     ((if t DisjunctionL ConjunctionL) (map (λ ([c : Logic]) (remove-not c t)) clauses))]
     [(? hash?) (if t l (negate-vect l))]))
-
-
-                                
-
 

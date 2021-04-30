@@ -14,12 +14,12 @@
 
 ;; Predicates ----------------------------------------------------------------------------------------
 
+(define-type Vect (U Vect-i Vect-x))
 (define-type Vect-i (Immutable-HashTable Variable Integer))
 (define-type Vect-x (Immutable-HashTable Variable Vect-i))
-
 (define-type Variable (U Symbol One))
 
-(define-type Logic (U Vect-i Vect-x ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean InvariantL))
+(define-type Logic (U Vect ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Boolean InvariantL))
 (struct ImpliesL ([left : Logic] [right : Logic]) #:transparent)
 (struct ConjunctionL ([clauses : (Listof Logic)]) #:transparent)
 (struct DisjunctionL ([clauses : (Listof Logic)]) #:transparent)

@@ -1,5 +1,4 @@
-#lang typed/racket/no-check
-
+#lang typed/racket
 (provide (all-defined-out))
 
 (require "types.rkt")
@@ -38,11 +37,11 @@
   (if (hash-has-key? in for)
       (vect-x+ (vect-i*constant what (hash-ref in for)) (hash-remove in for)) in))
 
-(define (negate-vect [v : (U Vect-i Vect-x)]) : (U Vect-i Vect-x)
+(define (negate-vect [v : Vect]) : Vect
   (if (hash? (first (hash-values v)))
-      (vect-x+ (vect-x*int v -1) #hash((1 . #hash((1 . -1)))))
-      (vect-i+ (vect-i*int v -1) #hash((1 . -1)))))
-   
+      (vect-x+ (vect-x*int (cast v Vect-x) -1) #hash((1 . #hash((1 . -1)))))
+      (vect-i+ (vect-i*int (cast v Vect-i) -1) #hash((1 . -1)))))
+
 
 (module+ test
   (require typed/rackunit)
