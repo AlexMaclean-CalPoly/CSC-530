@@ -5,7 +5,7 @@
 (require "types.rkt" "vector.rkt")
 
 (define (simplify [l : Logic]) : Logic
-  (remove-not (remove-subst (remove-implies l)) #t))
+  (flatten-l (remove-not (remove-subst (remove-implies l)) #t)))
 
 (define (remove-implies [l : Logic]) : Logic
   (match l
@@ -46,4 +46,16 @@
     [(DisjunctionL clauses)
      ((if t DisjunctionL ConjunctionL) (map (λ ([c : Logic]) (remove-not c t)) clauses))]
     [(? hash?) (if t l (negate-vect l))]))
+
+(define (flatten-l [l : Logic]) : Logic
+  (match l
+    [(or (? boolean?) (? hash?)) l]
+    [(ConjunctionL clauses) (let [(flat-clauses (filter (lambda ([i : Logic]) (not (equal? #t i))) (map flatten-l clauses)))]
+                              (if (member #f flat-clauses) #f
+                                  (ConjunctionL (append (filter (negate ConjunctionL?) flat-clauses)
+                                                        (append-map ConjunctionL-clauses (filter ConjunctionL? flat-clauses))))))]
+    [(DisjunctionL clauses) (let [(flat-clauses (filter (lambda ([i : Logic]) (not (equal? #f i))) (map flatten-l clauses)))]
+                              (if (member #t flat-clauses) #t
+                                  (DisjunctionL (append (filter (negate DisjunctionL?) flat-clauses)
+                                                        (append-map DisjunctionL-clauses (filter DisjunctionL? flat-clauses))))))]))
 

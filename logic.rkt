@@ -25,3 +25,19 @@
 ;; Joins multiple logical expression string representations with newlines
 (define (logic-str* [ls : (Listof Logic)]) : String
   (string-join (map logic-str ls) "\n"))
+
+(define (logic->sexp [l : Logic]) : Sexp
+  (match l
+    [(? boolean?) (if l 'true 'false)]
+    [(InvariantL id) id]
+    [(NotL arg) `(not ,(logic->sexp arg))]
+    [(ImpliesL left right) `( => ,(logic->sexp left) ,(logic->sexp right))]
+    [(ConjunctionL clauses) `(and . ,(map logic->sexp clauses))]
+    [(DisjunctionL clauses) `(or . ,(map logic->sexp clauses))]
+    [(SubstitutionL what for in) `(subst ,(logic->sexp what) ,for ,(logic->sexp in))]
+    [(? hash?) (format "(~a >= 0)" (vect-str l))]))
+
+(define (vect->sexp [v : Vect]) : Sexp
+  `(+ . ,(hash-map v (lambda ([var : Variable] [val : (U Integer Vect-i)]) `(* ,var ,(if (integer? val) val (vect->sexp val)))))))
+                    
+
