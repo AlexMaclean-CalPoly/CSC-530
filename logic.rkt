@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(provide logic->string logic->sexp)
+(provide logic->string logic->sexp vect->sexp)
 
 (require "types.rkt")
 

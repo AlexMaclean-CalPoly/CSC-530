@@ -38,3 +38,6 @@
 
 (define-type Label (U Symbol Cut-Point))
 (struct Cut-Point ([name : Symbol]) #:transparent)
+
+
+(struct assert-= ([v : Vect] [o : (U Zero Symbol)]) #:transparent)

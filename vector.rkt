@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang typed/racket/no-check
 (provide (all-defined-out))
 
 (require "types.rkt")
@@ -41,6 +41,12 @@
   (if (hash? (first (hash-values v)))
       (vect-x+ (vect-x*int (cast v Vect-x) -1) #hash((1 . #hash((1 . -1)))))
       (vect-i+ (vect-i*int (cast v Vect-i) -1) #hash((1 . -1)))))
+
+(define (vect-i->x [v : Vect]) : Vect-x
+  (if (hash? (first (hash-values v)))
+      (cast v Vect-x)
+      (make-immutable-hash
+       (hash-map (cast v Vect-x) (lambda ([var : Variable] [coef : Integer]) (cons var (make-immutable-hash (list (cons 1 coef)))))))))
 
 
 (module+ test

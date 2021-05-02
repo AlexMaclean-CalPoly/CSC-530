@@ -1,11 +1,11 @@
-#lang typed/racket
+#lang typed/racket/no-check
 
 (provide simplify)
 
 (require "types.rkt" "vector.rkt")
 
 (define (simplify [l : Logic]) : Logic
-  (flatten-l (remove-not (remove-subst (remove-implies l)) #t)))
+  (to-vect-x (flatten-l (to-CNF* (flatten-l (remove-not (remove-subst (remove-implies l)) #t))))))
 
 (define (remove-implies [l : Logic]) : Logic
   (match l
@@ -63,3 +63,23 @@
                                  (append-map DisjunctionL-clauses
                                              (filter DisjunctionL? flat-clauses))))))]))
 
+
+(define (to-CNF [l : Logic]) : (Listof Logic)
+  (match l
+    [(or (? boolean?) (? hash?)) (list l)]
+    [(ConjunctionL clauses) (append-map to-CNF clauses)]
+    [(DisjunctionL clauses) (map DisjunctionL (apply cartesian-product (map to-CNF clauses)))]))
+
+(define (to-CNF* [l : Logic]) : Logic
+  (ConjunctionL (to-CNF l)))
+
+(define (to-vect-x [l : Logic]) : Logic
+  (match l
+    [(? boolean?) l]
+    [(ConjunctionL clauses) (ConjunctionL (map to-vect-x clauses))]
+    [(DisjunctionL clauses) (DisjunctionL (map to-vect-x clauses))]
+    [(? hash?) (vect-i->x l)]))
+  
+
+
+                

@@ -1,7 +1,7 @@
 #lang typed/racket/no-check
 
 (require "parser.rkt" "logic.rkt" "get-constraints.rkt"
-         "control-graph.rkt" "solver.rkt" "make-invariant.rkt" "types.rkt")
+         "control-graph.rkt" "solver.rkt" "make-invariant.rkt" "types.rkt" "farkas.rkt" "z3.rkt")
 
 (define verbose-mode : (Parameterof Boolean) (make-parameter #f))
 (define sexp-mode : (Parameterof Boolean) (make-parameter #f))
@@ -13,6 +13,8 @@
   (define constraints-1st-order
     (map (λ ([i : Logic]) (simplify (subst-invariant invariant (InvariantL 'I) i)))
                                    constraints))
+  (define farkas (apply-farkas constraints-1st-order))
+  (map displayln (to-z3 farkas))
 
   (when (verbose-mode)
     (console-display "Second Order Constraints" constraints)
