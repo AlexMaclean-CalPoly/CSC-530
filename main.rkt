@@ -1,10 +1,10 @@
 #lang typed/racket/no-check
 
 (require "parser.rkt" "logic.rkt" "get-constraints.rkt"
-         "control-graph.rkt" "solver.rkt" "make-invariant.rkt"
-         "types.rkt")
+         "control-graph.rkt" "solver.rkt" "make-invariant.rkt" "types.rkt")
 
 (define verbose-mode : (Parameterof Boolean) (make-parameter #f))
+(define sexp-mode : (Parameterof Boolean) (make-parameter #f))
 
 (define (top-verify [s : Sexp] [clauses : Integer] [sub-clauses : Integer]) : Void
   (define program (parse s))
@@ -15,9 +15,13 @@
                                    constraints))
 
   (when (verbose-mode)
-    (printf "\nSecond Order Constraints:\n~a\n" (logic-str* constraints))
-    (printf "\nHypothesized Invariant:\n~a\n" (logic-str invariant))
-    (printf "\nFirst Order Constraints:\n~a\n" (logic-str* constraints-1st-order))))
+    (console-display "Second Order Constraints" constraints)
+    (console-display "Hypothesized Invariant" invariant)
+    (console-display "First Order Constraints" constraints-1st-order)))
+
+(define (console-display [title : String] [data : (U Logic (Listof Logic))]) : Void
+  (define disp (if (sexp-mode) logic->sexp logic->string))
+  (printf "\n~a:\n~a\n" title (if (list? data) (map disp data) (disp data))))
 
 (module+ main
 
@@ -28,6 +32,9 @@
    #:program "constraint solving verifier"
    #:once-each
    [("-v" "--verbose") "Verify with verbose messages" (verbose-mode #t)]
+   #:once-any
+   [("-x" "--sexp") "Display output as prefix s-expressions" (sexp-mode #t)]
+   [("-s" "--string") "Display output as infix strings" (sexp-mode #f)]
    #:args (filepath ands ors)
    (begin
      (unless (and (cmd-integer? ands) (cmd-integer? ors))

@@ -50,12 +50,16 @@
 (define (flatten-l [l : Logic]) : Logic
   (match l
     [(or (? boolean?) (? hash?)) l]
-    [(ConjunctionL clauses) (let [(flat-clauses (filter (lambda ([i : Logic]) (not (equal? #t i))) (map flatten-l clauses)))]
-                              (if (member #f flat-clauses) #f
-                                  (ConjunctionL (append (filter (negate ConjunctionL?) flat-clauses)
-                                                        (append-map ConjunctionL-clauses (filter ConjunctionL? flat-clauses))))))]
-    [(DisjunctionL clauses) (let [(flat-clauses (filter (lambda ([i : Logic]) (not (equal? #f i))) (map flatten-l clauses)))]
-                              (if (member #t flat-clauses) #t
-                                  (DisjunctionL (append (filter (negate DisjunctionL?) flat-clauses)
-                                                        (append-map DisjunctionL-clauses (filter DisjunctionL? flat-clauses))))))]))
+    [(ConjunctionL clauses)
+     (let [(flat-clauses (remove* '(#t) (map flatten-l clauses)))]
+       (if (member #f flat-clauses) #f
+           (ConjunctionL (append (filter (negate ConjunctionL?) flat-clauses)
+                                 (append-map ConjunctionL-clauses
+                                             (filter ConjunctionL? flat-clauses))))))]
+    [(DisjunctionL clauses)
+     (let [(flat-clauses (remove* '(#f) (map flatten-l clauses)))]
+       (if (member #t flat-clauses) #t
+           (DisjunctionL (append (filter (negate DisjunctionL?) flat-clauses)
+                                 (append-map DisjunctionL-clauses
+                                             (filter DisjunctionL? flat-clauses))))))]))
 
