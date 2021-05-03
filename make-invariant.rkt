@@ -1,8 +1,8 @@
 #lang typed/racket
 
-(provide make-invariant extract-vars subst-invariant)
+(provide make-invariant extract-vars subst-invariant subst-constant)
 
-(require "types.rkt")
+(require "types.rkt" "vector.rkt")
 
 (define (extract-vars [p : Program]) : (Listof Symbol)
   (apply set-union '() (map extract-vars/Stmt p)))
@@ -53,4 +53,13 @@
     [(NotL var) (NotL (subst-invariant what for var))]
     [(SubstitutionL w f i) (SubstitutionL w f (subst-invariant what for i))]
     [(or (? VectI?) (? boolean?)) in]))
+
+(define (subst-constant [what : Integer] [for : Symbol] [in : Logic]) : Logic
+  (match in
+    [(ConjunctionL clauses)
+     (ConjunctionL (map (λ ([c : Logic]) (subst-constant what for c)) clauses))]
+    [(DisjunctionL clauses)
+     (DisjunctionL (map (λ ([c : Logic]) (subst-constant what for c)) clauses))]
+    [(? VectX?) (vect-subst-const what for in)]))
+    
 

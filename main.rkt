@@ -20,11 +20,31 @@
     (console-display "Hypothesized Invariant" invariant)
     (console-display "First Order Constraints" constraints-1st-order))
 
-  (map displayln (to-z3 farkas)))
+  (map displayln (to-z3 farkas))
+
+  (define final-invariant (execute-z3 (to-z3 farkas) invariant))
+  (displayln (logic->sexp final-invariant))
+  (void))
 
 (define (console-display [title : String] [data : (U Logic (Listof Logic))]) : Void
   (define disp (if (sexp-mode) logic->sexp logic->string))
   (printf "\n~a:\n~a\n" title (if (list? data) (map disp data) (disp data))))
+
+(define (execute-z3 [l : (Listof Sexp)] [invariant : Logic]) : (U Logic False)
+  (define-values (sp out in err)
+    (subprocess #f #f #f "/home/y/Downloads/z3-4.8.10-x64-ubuntu-18.04/bin/z3" "-in"))
+  (map (lambda ([s : Sexp]) (displayln s in)) l)
+  (close-output-port in)
+  (define sat? (read out))
+  (define model-Sexp (read out))
+  (subprocess-wait sp)
+  (match sat?
+    ['unsat #f]
+    ['sat (foldl (lambda ([c : (Pairof Symbol Integer)] [in : Logic]) (subst-constant (cdr c) (car c) in))
+                 invariant
+                 (hash->list (parse-model model-Sexp)))]))
+            
+  
 
 (module+ main
 

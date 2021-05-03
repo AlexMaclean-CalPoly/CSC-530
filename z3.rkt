@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(provide to-z3)
+(provide to-z3 parse-model)
 
 (require "vector.rkt" "logic.rkt" "types.rkt")
 
@@ -30,3 +30,14 @@
    (filter symbol? (append-map (λ ([x : Assert=])
                                  (append-map hash-keys
                                              (hash-values (VectX-terms (Assert=-v x))))) l))))
+
+(define (parse-model [m : Sexp]) : (Immutable-HashTable Symbol Integer)
+  (make-immutable-hash (if (list? m) (map parse-model-term m) (error "invaid model: ~a" m))))
+
+(define (parse-model-term [m : Sexp]) : (Pairof Symbol Integer)
+  (match m
+    [`(define-fun ,(? symbol? var) () Int ,(? exact-integer? val)) (cons var val)]
+    [`(define-fun ,(? symbol? var) () Int (- ,(? exact-integer? val))) (cons var (- val))]
+    [_ (error "Invalid clause: ~a" m)]))
+    
+    

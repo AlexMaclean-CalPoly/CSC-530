@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(provide vect? vect-i*int vect-i+ vect-subst to-vect-x negate-vect vect-x+)
+(provide vect? vect-i*int vect-i+ vect-subst to-vect-x negate-vect vect-x+ vect-subst-const)
 
 (require "types.rkt")
 
@@ -39,6 +39,9 @@
 (define (vect+int [a : VectI] [i : Integer]) : VectI
   (VectI (terms+int (VectI-terms a) i)))
 
+(define (vect-subst-const [what : Integer] [for : Symbol] [in : VectX]) : VectX
+  (VectX (terms-subst-const what for (VectX-terms in))))
+
 ;; ---------------------------------------------------------------------------------------------------
 
 (define (terms-i*int [v : TermsI] [i : Integer]) : TermsI
@@ -63,6 +66,14 @@
 
 (define (terms+int [a : TermsI] [i : Integer]) : TermsI
   (hash-set a 1 (+ i (hash-ref a 1 (thunk 0)))))
+
+(define (terms-subst-const [what : Integer] [for : Symbol] [in : TermsX]) : TermsX
+  (for/hash : TermsX ([([var : Variable] [coef : TermsI]) in])
+    (define v (first (hash-keys coef)))
+    (values var (if (and (symbol? v) (equal? (symbol->string for) (symbol->string v)))
+                    (make-immutable-hash (list (cons 1 what)))
+                    coef))))
+  
 
 (module wrapper racket/base
   (provide (all-defined-out))

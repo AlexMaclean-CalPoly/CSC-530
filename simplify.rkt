@@ -6,7 +6,7 @@
 
 (define (simplify [l : Logic]) : Logic
   (define simplified (flatten-l (remove-not (remove-subst (remove-implies l)) #t)))
-  (if (boolean? simplified) simplified (to-CNF (flatten-l simplified))))
+  (if (boolean? simplified) simplified (flatten-l (to-CNF (flatten-l simplified)))))
 
 ;; A logic at this point may have: ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Vect Boolean
 (define (remove-implies [l : Logic]) : Logic
