@@ -1,4 +1,4 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide parse)
 
@@ -36,7 +36,7 @@ Pred = (Pred && Pred)
 
 (define (parse/Stmt [s : Sexp]) : Stmt
   (match s
-    [`(,(? symbol? id) := ?) (Assign id (make-immutable-hash (list (cons (gensym 'r) 1))))]
+    [`(,(? symbol? id) := ?) (Assign id (VectI (make-immutable-hash (list (cons (gensym 'r) 1)))))]
     [`(,(? symbol? id) := ,exp) (Assign id (parse/Vect exp))]
     [`(while ,test ,(? list? body)) (While (parse/Logic test) (parse/Program body))]
     [`(if ,test ,(? list? body)) (If (parse/Logic test) (parse/Program body))]
@@ -53,10 +53,10 @@ Pred = (Pred && Pred)
     [`(,v < 0) (NotL (parse/Vect v))]
     [_ (error 'parse "Invalid Logic ~e" s)]))
 
-(define (parse/Vect [s : Sexp]) : Vect-i
+(define (parse/Vect [s : Sexp]) : VectI
   (match s
-    [(? exact-integer?) (make-immutable-hash (list (cons 1 s)))]
-    [(? symbol?) (make-immutable-hash (list (cons s 1)))]
+    [(? exact-integer?) (VectI (make-immutable-hash (list (cons 1 s))))]
+    [(? symbol?) (VectI (make-immutable-hash (list (cons s 1))))]
     [`(,a + ,b) (vect-i+ (parse/Vect a) (parse/Vect b))]
     [`(,v * ,(? exact-integer? i)) (vect-i*int (parse/Vect v) i)]
     [`(,(? exact-integer? i) * ,v) (vect-i*int (parse/Vect v) i)]
@@ -76,9 +76,9 @@ Pred = (Pred && Pred)
                            }}
                    {assert((y + -1) >= 0)}})
                 (list
-                 (Assign 'x '#hash((1 . -50)))
+                 (Assign 'x (VectI #hash((1 . -50))))
                  (While
-                  (NotL '#hash((x . 1)))
-                  (list (Assign 'x #hash((x . 1) (y . 1)))
-                        (Assign 'y #hash((1 . 1) (y . 1)))))
-                 (Assert '#hash((1 . -1) (y . 1))))))
+                  (NotL (VectI #hash((x . 1))))
+                  (list (Assign 'x (VectI #hash((x . 1) (y . 1))))
+                        (Assign 'y (VectI #hash((1 . 1) (y . 1))))))
+                 (Assert (VectI #hash((1 . -1) (y . 1)))))))

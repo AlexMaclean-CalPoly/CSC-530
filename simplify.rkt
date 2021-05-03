@@ -1,12 +1,14 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (provide simplify)
 
-(require "types.rkt" "vector.rkt")
+(require "types.rkt" "vector.rkt" "logic.rkt")
 
 (define (simplify [l : Logic]) : Logic
-  (to-vect-x (flatten-l (to-CNF* (flatten-l (remove-not (remove-subst (remove-implies l)) #t))))))
+  (define simplified (flatten-l (remove-not (remove-subst (remove-implies l)) #t)))
+  (if (boolean? simplified) simplified (to-CNF (flatten-l simplified))))
 
+;; A logic at this point may have: ImpliesL ConjunctionL DisjunctionL SubstitutionL NotL Vect Boolean
 (define (remove-implies [l : Logic]) : Logic
   (match l
     [(ImpliesL left right) (DisjunctionL (list (NotL (remove-implies left)) (remove-implies right)))]
@@ -14,29 +16,29 @@
     [(DisjunctionL clauses) (DisjunctionL (map remove-implies clauses))]
     [(NotL var) (NotL (remove-implies var))]
     [(SubstitutionL w f i) (SubstitutionL w f (remove-implies i))]
-    [(or (? hash?) (? boolean?)) l]
-    [(? InvariantL?) (error 'remove-implies "No invariants should be present")]))
+    [(or (? vect?) (? boolean?)) l]))
 
+;; A logic at this point may have: ConjunctionL DisjunctionL SubstitutionL NotL Vect Boolean
 (define (remove-subst [l : Logic]) : Logic
   (match l
     [(SubstitutionL w f i) (subst-vect w f (remove-subst i))]
+    [(? VectI?) (to-vect-x l)]
     [(ConjunctionL clauses) (ConjunctionL (map remove-subst clauses))]
     [(DisjunctionL clauses) (DisjunctionL (map remove-subst clauses))]
     [(NotL var) (NotL (remove-subst var))]
-    [(or (? hash?) (? boolean?)) l]
-    [(or (? InvariantL?) (? ImpliesL?))
-     (error 'remove-subst "No invariants or implies should be present")]))
+    [(or (? VectX?) (? boolean?)) l]))
 
-(define (subst-vect [what : Vect-i] [for : Symbol] [in : Logic]) : Logic
+;; A logic at this point may have: ConjunctionL DisjunctionL SubstitutionL NotL Vect Boolean
+(define (subst-vect [what : VectI] [for : Symbol] [in : Logic]) : Logic
   (match in
-    [(? hash?) (vect-subst what for (cast in Vect-x))]
+    [(? VectX?) (vect-subst what for in)]
+    [(? VectI?) (vect-subst what for (to-vect-x in))]
     [(ConjunctionL clauses) (ConjunctionL (map (λ ([c : Logic]) (subst-vect what for c)) clauses))]
     [(DisjunctionL clauses) (DisjunctionL (map (λ ([c : Logic]) (subst-vect what for c)) clauses))]
     [(NotL var) (NotL (subst-vect what for var))]
-    [(? boolean?) in]
-    [(or (? InvariantL?) (? ImpliesL?) (? SubstitutionL?))
-     (error 'remove-subst "No invariants or implies should be present")]))
+    [(? boolean?) in]))
 
+;; A logic at this point may have: ConjunctionL DisjunctionL NotL VectX Boolean
 (define (remove-not [l : Logic] [t : Boolean]) : Logic
   (match l
     [(NotL var) (remove-not var (not t))]
@@ -45,11 +47,12 @@
      ((if t ConjunctionL DisjunctionL) (map (λ ([c : Logic]) (remove-not c t)) clauses))]
     [(DisjunctionL clauses)
      ((if t DisjunctionL ConjunctionL) (map (λ ([c : Logic]) (remove-not c t)) clauses))]
-    [(? hash?) (if t l (negate-vect l))]))
+    [(? VectX?) (if t l (negate-vect l))]))
 
+;; A logic at this point may have: ConjunctionL DisjunctionL VectX Boolean
 (define (flatten-l [l : Logic]) : Logic
   (match l
-    [(or (? boolean?) (? hash?)) l]
+    [(or (? boolean?) (? VectX?)) l]
     [(ConjunctionL clauses)
      (let [(flat-clauses (remove* '(#t) (map flatten-l clauses)))]
        (if (member #f flat-clauses) #f
@@ -63,23 +66,16 @@
                                  (append-map DisjunctionL-clauses
                                              (filter DisjunctionL? flat-clauses))))))]))
 
+;; A logic at this point may have: ConjunctionL DisjunctionL VectX
+(define (to-CNF [l : Logic]) : Logic
+  (ConjunctionL (to-CNF-helper l)))
 
-(define (to-CNF [l : Logic]) : (Listof Logic)
+(define (to-CNF-helper [l : Logic]) : (Listof Logic)
   (match l
-    [(or (? boolean?) (? hash?)) (list l)]
-    [(ConjunctionL clauses) (append-map to-CNF clauses)]
-    [(DisjunctionL clauses) (map DisjunctionL (apply cartesian-product (map to-CNF clauses)))]))
-
-(define (to-CNF* [l : Logic]) : Logic
-  (ConjunctionL (to-CNF l)))
-
-(define (to-vect-x [l : Logic]) : Logic
-  (match l
-    [(? boolean?) l]
-    [(ConjunctionL clauses) (ConjunctionL (map to-vect-x clauses))]
-    [(DisjunctionL clauses) (DisjunctionL (map to-vect-x clauses))]
-    [(? hash?) (vect-i->x l)]))
-  
+    [(? VectX?) (list l)]
+    [(ConjunctionL clauses) (append-map to-CNF-helper clauses)]
+    [(DisjunctionL clauses)
+     (map DisjunctionL (apply cartesian-product (map to-CNF-helper clauses)))]))
 
 
-                
+

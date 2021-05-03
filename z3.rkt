@@ -1,29 +1,32 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
-
-(require "vector.rkt" "logic.rkt" "types.rkt")
 (provide to-z3)
 
-(define (to-z3 [l : (Listof assert-=)]) : (Listof Sexp)
-  `(,@(map (lambda ([s : Symbol]) `(declare-const ,s Int)) (append (get-lambdas l) (get-lambda-n l) (get-unknowns l)))
+(require "vector.rkt" "logic.rkt" "types.rkt")
+
+(define (to-z3 [l : (Listof Assert=)]) : (Listof Sexp)
+  `(,@(map (λ ([s : Symbol]) `(declare-const ,s Int)) (get-all-vars l))
     ,@(map to-z3/assert l)
-    ,@(map (lambda ([s : Symbol]) `(assert (>= ,s 0))) (get-lambda-n l))
-    ,@(map (lambda ([s : Symbol]) `(assert (> ,s 0))) (get-lambdas l))
+    ,@(map (λ ([s : Symbol]) `(assert (>= ,s 0))) (get-lambda-n l))
+    ,@(map (λ ([s : Symbol]) `(assert (> ,s 0))) (get-lambdas l))
     (check-sat)
     (get-model)))
 
+(define (to-z3/assert [a : Assert=]) : Sexp
+  `(assert (= ,(vect->sexp (Assert=-v a)) ,(match (Assert=-o a) [0 0] [(? symbol? s) `(* -1 ,s)]))))
 
-(define (to-z3/assert [a : assert-=]) : Sexp
-  `(assert (= ,(vect->sexp (assert-=-v a)) ,(match (assert-=-o a) [0 0] [(? symbol? s) `(* -1 ,s)]))))
+(define (get-all-vars [l : (Listof Assert=)]) : (Listof Symbol)
+  (append (get-lambdas l) (get-lambda-n l) (get-unknowns l)))
 
-(define (get-lambdas [l : (Listof assert-=)]) : (Listof Symbol)
-  (remove-duplicates (filter symbol? (map assert-=-o l))))
+(define (get-lambdas [l : (Listof Assert=)]) : (Listof Symbol)
+  (remove-duplicates (filter symbol? (map Assert=-o l))))
 
-(define (get-lambda-n [l : (listof assrt-=)]) : (Listof Symbol)
-  (remove-duplicates (filter symbol? (append-map (lambda ([x : assert-=]) (hash-keys (assert-=-v x))) l))))
+(define (get-lambda-n [l : (Listof Assert=)]) : (Listof Symbol)
+  (remove-duplicates (filter symbol? (append-map (λ ([x : Assert=])
+                                                   (hash-keys (VectX-terms (Assert=-v x)))) l))))
 
-(define (get-unknowns [l : (listof assrt-=)]) : (Listof Symbol)
-  (remove-duplicates (filter symbol? (append-map (lambda ([x : assert-=]) (append-map hash-keys (hash-values (assert-=-v x)))) l))))
-
-;(define (get-vars [l : (Listof assert-=)]) : (Listof Symbols)
-;  (append-map (lambda ([a : assert-=]) (cons (assert-=-o a) (get-vars/Vect-x (assert-=-v a)))) l))
+(define (get-unknowns [l : (Listof Assert=)]) : (Listof Symbol)
+  (remove-duplicates
+   (filter symbol? (append-map (λ ([x : Assert=])
+                                 (append-map hash-keys
+                                             (hash-values (VectX-terms (Assert=-v x))))) l))))

@@ -1,62 +1,94 @@
-#lang typed/racket/no-check
-(provide (all-defined-out))
+#lang typed/racket
+
+(provide vect? vect-i*int vect-i+ vect-subst to-vect-x negate-vect vect-x+)
 
 (require "types.rkt")
+
+(define (vect-x+ [a : VectX] [b : VectX]) : VectX
+  (VectX (terms-x+ (VectX-terms a) (VectX-terms b))))
+
+(define (vect-i+ [a : VectI] [b : VectI]) : VectI
+  (VectI (terms-i+ (VectI-terms a) (VectI-terms b))))
+
+(: vect? (Any -> Boolean : Vect))
+(define (vect? a)
+  (or (VectX? a) (VectI? a)))
+
+(define (vect-i*int [v : VectI] [i : Integer]) : VectI
+  (VectI (terms-i*int (VectI-terms v) i)))
+
+(define (vect-x*int [v : VectX] [i : Integer]) : VectX
+  (VectX (terms-x*int (VectX-terms v) i)))
+
+(define (vect-i*constant [v : VectI] [c : VectI]) : VectX
+  (VectX (terms-i*constant (VectI-terms v) (VectI-terms c))))
+
+(define (negate-vect [v : Vect]) : Vect
+  (match v
+    [(VectX terms) (VectX (terms-x+ (terms-x*int terms -1) #hash((1 . #hash((1 . -1))))))]
+    [(VectI terms) (VectI (terms-i+ (terms-i*int terms -1) #hash((1 . -1))))]))
+
+(define (to-vect-x [v : Vect]) : VectX
+  (match v
+    [(? VectX?) v]
+    [(VectI terms) (VectX (terms-i->x terms))]))
+
+(define (vect-subst [what : VectI] [for : Symbol] [in : VectX]) : VectX
+  (VectX (terms-subst (VectI-terms what) for (VectX-terms in))))
+
+(define (vect+int [a : VectI] [i : Integer]) : VectI
+  (VectI (terms+int (VectI-terms a) i)))
+
+;; ---------------------------------------------------------------------------------------------------
+
+(define (terms-i*int [v : TermsI] [i : Integer]) : TermsI
+  (for/hash : TermsI ([([var : Variable] [coef : Integer]) v])
+    (values var (* i coef))))
+
+(define (terms-x*int [v : TermsX] [i : Integer]) : TermsX
+  (for/hash : TermsX ([([var : Variable] [coef : TermsI]) v])
+    (values var (terms-i*int coef i))))
+
+(define (terms-i->x [t : TermsI]) : TermsX
+  (for/hash : TermsX ([([var : Variable] [coef : Integer]) t])
+    (values var (make-immutable-hash (list (cons 1 coef))))))
+
+(define (terms-i*constant [v : TermsI] [c : TermsI]) : TermsX
+  (for/hash : TermsX ([([var : Variable] [coef : Integer]) v])
+    (values var (terms-i*int c coef))))
+
+(define (terms-subst [what : TermsI] [for : Symbol] [in : TermsX]) : TermsX
+  (if (hash-has-key? in for)
+      (terms-x+ (terms-i*constant what (hash-ref in for)) (hash-remove in for)) in))
+
+(define (terms+int [a : TermsI] [i : Integer]) : TermsI
+  (hash-set a 1 (+ i (hash-ref a 1 (thunk 0)))))
 
 (module wrapper racket/base
   (provide (all-defined-out))
   (require racket/hash)
 
-  (define (vect-x+ a b)
-    (hash-union a b #:combine vect-i+))
+  (define (terms-x+ a b)
+    (hash-union a b #:combine terms-i+))
 
-  (define (vect-i+ a b)
+  (define (terms-i+ a b)
     (hash-union a b #:combine +)))
 
-(require/typed/provide 'wrapper
-                       [vect-x+ (Vect-x Vect-x -> Vect-x)]
-                       [vect-i+ (Vect-i Vect-i -> Vect-i)])
+(require/typed 'wrapper
+               [terms-x+ (TermsX TermsX -> TermsX)]
+               [terms-i+ (TermsI TermsI -> TermsI)])
 
-
-(define (vect+int [a : Vect-i] [i : Integer]) : Vect-i
-  (hash-set a 1 (+ i (hash-ref a 1 (thunk 0)))))
-
-(define (vect-i*int [v : Vect-i] [i : Integer]) : Vect-i
-  (make-immutable-hash
-   (hash-map v (λ ([var : Variable] [coef : Integer]) (cons var (* i coef))))))
-
-(define (vect-x*int [v : Vect-x] [i : Integer]) : Vect-x
-  (make-immutable-hash
-   (hash-map v (λ ([var : Variable] [coef : Vect-i]) (cons var (vect-i*int coef i))))))
-
-(define (vect-i*constant [v : Vect-i] [c : Vect-i]) : Vect-x
-  (make-immutable-hash
-   (hash-map v (λ ([var : Variable] [coef : Integer]) (cons var (vect-i*int c coef))))))
-
-(define (vect-subst [what : Vect-i] [for : Symbol] [in : Vect-x]) : Vect-x
-  (if (hash-has-key? in for)
-      (vect-x+ (vect-i*constant what (hash-ref in for)) (hash-remove in for)) in))
-
-(define (negate-vect [v : Vect]) : Vect
-  (if (hash? (first (hash-values v)))
-      (vect-x+ (vect-x*int (cast v Vect-x) -1) #hash((1 . #hash((1 . -1)))))
-      (vect-i+ (vect-i*int (cast v Vect-i) -1) #hash((1 . -1)))))
-
-(define (vect-i->x [v : Vect]) : Vect-x
-  (if (hash? (first (hash-values v)))
-      (cast v Vect-x)
-      (make-immutable-hash
-       (hash-map (cast v Vect-x) (lambda ([var : Variable] [coef : Integer]) (cons var (make-immutable-hash (list (cons 1 coef)))))))))
-
+;; ---------------------------------------------------------------------------------------------------
 
 (module+ test
   (require typed/rackunit)
-  (check-equal? (vect-i+ #hash((x . 10) (y . 15)) #hash((x . 12) (z . 8)))
-                #hash((x . 22) (y . 15) (z . 8)))
-  (check-equal? (vect-i*int #hash((x . 10) (y . 1)) 2)
-                #hash((x . 20) (y . 2)))
-  (check-equal? (vect-subst #hash((x . 3) (y . 4)) 'x
-                            #hash((x . #hash((a1 . 1) (a2 . 4))) (y . #hash((a3 . 1) (a4 . 2)))))
-                #hash((x . #hash((a1 . 3) (a2 . 12)))
-                      (y . #hash((a1 . 4) (a2 . 16) (a3 . 1) (a4 . 2)))))
-  (check-equal? (negate-vect #hash((1 . 5) (x . 4))) #hash((1 . -6) (x . -4))))
+  (check-equal? (vect-i+ (VectI #hash((x . 10) (y . 15))) (VectI #hash((x . 12) (z . 8))))
+                (VectI #hash((x . 22) (y . 15) (z . 8))))
+  (check-equal? (vect-i*int (VectI #hash((x . 10) (y . 1))) 2)
+                (VectI #hash((x . 20) (y . 2))))
+  (check-equal?
+   (vect-subst (VectI #hash((x . 3) (y . 4))) 'x
+               (VectX #hash((x . #hash((a1 . 1) (a2 . 4))) (y . #hash((a3 . 1) (a4 . 2))))))
+   (VectX #hash((x . #hash((a1 . 3) (a2 . 12)))
+                (y . #hash((a1 . 4) (a2 . 16) (a3 . 1) (a4 . 2))))))
+  (check-equal? (negate-vect (VectI #hash((1 . 5) (x . 4)))) (VectI #hash((1 . -6) (x . -4)))))

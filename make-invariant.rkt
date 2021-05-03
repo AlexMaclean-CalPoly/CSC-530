@@ -20,25 +20,23 @@
     [(ConjunctionL clauses) (apply set-union '() (map extract-vars/Logic clauses))]
     [(DisjunctionL clauses) (apply set-union '() (map extract-vars/Logic clauses))]
     [(NotL var) (extract-vars/Logic var)]
-    [(? hash?) (extract-vars/Vect l)]
+    [(? VectI?) (extract-vars/Vect l)]
     [(? boolean?) '()]))
 
-(define (extract-vars/Vect [v : (U Vect-x Vect-i)]) : (Listof Symbol)
-  (filter symbol? (hash-keys v)))
+(define (extract-vars/Vect [v : VectI]) : (Listof Symbol)
+  (filter symbol? (hash-keys (VectI-terms v))))
 
 ;; ---------------------------------------------------------------------------------------------------
 
 (define (make-invariant [clauses : Integer] [sub-clauses : Integer] [vars : (Listof Symbol)]) : Logic
-  (DisjunctionL
-   (build-list clauses (λ (_)
-                         (ConjunctionL
-                          (build-list sub-clauses (λ (_) (make-sum vars))))))))
+  (DisjunctionL (for/list ([c clauses])
+                  (ConjunctionL (for/list ([s sub-clauses]) (make-sum vars))))))
 
-(define (make-sum [vars : (Listof Symbol)]) : Vect-x
-  (make-immutable-hash
-   (cons (cons 1 (make-const)) (map (λ ([v : Symbol]) (cons v (make-const))) vars))))
+(define (make-sum [vars : (Listof Symbol)]) : VectX
+  (VectX (for/hash : TermsX ([var : Variable (cons 1 vars)])
+           (values var (make-const)))))
 
-(define (make-const) : Vect-i
+(define (make-const) : TermsI
   (make-immutable-hash (list (cons (gensym 'u) 1))))
 
 ;; ---------------------------------------------------------------------------------------------------
@@ -54,5 +52,5 @@
      (DisjunctionL (map (λ ([c : Logic]) (subst-invariant what for c)) clauses))]
     [(NotL var) (NotL (subst-invariant what for var))]
     [(SubstitutionL w f i) (SubstitutionL w f (subst-invariant what for i))]
-    [(or (? hash?) (? boolean?)) in]))
+    [(or (? VectI?) (? boolean?)) in]))
 
