@@ -17,12 +17,6 @@
 (define (vect-i*int [v : VectI] [i : Integer]) : VectI
   (VectI (terms-i*int (VectI-terms v) i)))
 
-(define (vect-x*int [v : VectX] [i : Integer]) : VectX
-  (VectX (terms-x*int (VectX-terms v) i)))
-
-(define (vect-i*constant [v : VectI] [c : VectI]) : VectX
-  (VectX (terms-i*constant (VectI-terms v) (VectI-terms c))))
-
 (define (negate-vect [v : Vect]) : Vect
   (match v
     [(VectX terms) (VectX (terms-x+ (terms-x*int terms -1) #hash((1 . #hash((1 . -1))))))]
@@ -35,9 +29,6 @@
 
 (define (vect-subst [what : VectI] [for : Symbol] [in : VectX]) : VectX
   (VectX (terms-subst (VectI-terms what) for (VectX-terms in))))
-
-(define (vect+int [a : VectI] [i : Integer]) : VectI
-  (VectI (terms+int (VectI-terms a) i)))
 
 (define (vect-subst-const [what : Integer] [for : Symbol] [in : VectX]) : VectX
   (VectX (terms-subst-const what for (VectX-terms in))))
@@ -64,16 +55,12 @@
   (if (hash-has-key? in for)
       (terms-x+ (terms-i*constant what (hash-ref in for)) (hash-remove in for)) in))
 
-(define (terms+int [a : TermsI] [i : Integer]) : TermsI
-  (hash-set a 1 (+ i (hash-ref a 1 (thunk 0)))))
-
 (define (terms-subst-const [what : Integer] [for : Symbol] [in : TermsX]) : TermsX
   (for/hash : TermsX ([([var : Variable] [coef : TermsI]) in])
     (define v (first (hash-keys coef)))
     (values var (if (and (symbol? v) (equal? (symbol->string for) (symbol->string v)))
                     (make-immutable-hash (list (cons 1 what)))
                     coef))))
-  
 
 (module wrapper racket/base
   (provide (all-defined-out))

@@ -33,18 +33,18 @@
 (define (execute-z3 [l : (Listof Sexp)] [invariant : Logic]) : (U Logic False)
   (define-values (sp out in err)
     (subprocess #f #f #f "/home/y/Downloads/z3-4.8.10-x64-ubuntu-18.04/bin/z3" "-in"))
-  (map (lambda ([s : Sexp]) (displayln s in)) l)
+  (map (λ ([s : Sexp]) (displayln s in)) l)
   (close-output-port in)
   (define sat? (read out))
   (define model-Sexp (read out))
   (subprocess-wait sp)
   (match sat?
     ['unsat #f]
-    ['sat (foldl (lambda ([c : (Pairof Symbol Integer)] [in : Logic]) (subst-constant (cdr c) (car c) in))
+    ['sat (foldl (λ ([c : (Pairof Symbol Integer)] [in : Logic]) (subst-constant (cdr c) (car c) in))
                  invariant
                  (hash->list (parse-model model-Sexp)))]))
-            
-  
+
+
 
 (module+ main
 
