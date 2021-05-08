@@ -2,22 +2,19 @@
 
 (provide (all-defined-out))
 
-(define-type op-a (U '+ '* '- '/ '**))
+;; normal mPy
+(define-type ArithExpr (U Integer Symbol (BinOp ArithExpr ArithOp)))
+(define-type ArithOp (U '+ '* '- '/ '**))
 
-(struct (A O) Arith ([a0 : A] [op : O] [a1 : A]) #:prefab)
-
-(define-type Arith-Expr (U Integer (Arith Arith-Expr op-a) Symbol))
+;; rewritten ~mPy~
+(define-type ArithExpr~ (U Integer Symbol (BinOp ArithExpr~ ArithOp~) (Choices ArithExpr~)))
+(define-type ArithOp~ (U ArithOp (Choices ArithOp~)))
 
 (struct (A) Choices ([s : (Listof A)]) #:prefab)
 
-(define-type set-op (U op-a (Choices set-op)))
+;; shared
+(struct (A O) BinOp ([a0 : A] [op : O] [a1 : A]) #:prefab)
 
-(define-type Arith-Set-Expr (U Arith-Expr (Arith Arith-Set-Expr set-op) (Choices Arith-Set-Expr)))
-
-(struct Rewrite-Rule ([before : Arith-Expr] [after : Arith-Set-Expr]) #:prefab)
-
+;; Error Model
 (define-type Error-Model (Listof Rewrite-Rule))
-
-
-
-
+(struct Rewrite-Rule ([before : ArithExpr] [after : ArithExpr~]) #:prefab)
