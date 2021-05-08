@@ -21,3 +21,11 @@
 (struct Subst ([s : Symbol]) #:prefab)
 (define-type Error-Model (Listof Rewrite-Rule))
 (struct Rewrite-Rule ([before :  (ArithExpr* Subst)] [after : (ArithExpr~* Subst)]) #:prefab)
+
+;; Sketch
+; prefab causes out of memory error on IfSK
+(struct IfSK ([then : (Listof StmtSK)] [else : (Listof StmtSK)]) #:transparent)
+(struct ReturnSK ([val : ExprSK]) #:transparent)
+(define-type StmtSK (U IfSK ReturnSK))
+(define-type FunSK (Listof StmtSK))
+(define-type ExprSK (U Integer Symbol (BinOp ExprSK ArithOp)))
