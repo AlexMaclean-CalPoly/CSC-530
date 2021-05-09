@@ -1,12 +1,18 @@
-#lang typed/racket/no-check
+#lang typed/racket
 
 (require "types.rkt")
-(require racket/hash) 
+(require typed/racket/unsafe)
 
-(define EM : Error-Model '(#s(Rewrite-Rule #s(BinOp #s(Subst a) + #s(Subst b)) #s(BinOp #s(Subst a) #s(Choices (- * /)) #s(Subst b)))))
+(unsafe-require/typed racket/hash
+                      [hash-union (∀ (α β) ([(Immutable-HashTable α β)]
+                                            #:rest (Immutable-HashTable α β)
+                                            . ->* .
+                                            (Immutable-HashTable α β)))])
+
+(define-type RewriteEnv (Immutable-HashTable Symbol ArithExpr))
 
 ;;
-(define (rewrite [term : ArithExpr] [em : Error-Model]) : ArithExpr~
+(define (rewrite [term : ArithExpr] [em : Error-Model]) : ArithSetExpr
   (Choices
    (cons (match term
            [(BinOp a op b) (BinOp (rewrite a em) op (rewrite b em))]
@@ -14,26 +20,44 @@
          (rewrite* term em))))
 
 ;;
-(define (rewrite* [term : ArithExpr] [em : Error-Model]) : (Listof ArithExpr~)
+(define (rewrite* [term : ArithExpr] [em : Error-Model]) : (Listof ArithSetExpr)
   (match em
     ['() '()]
     [(cons (Rewrite-Rule before after) rst)
      (let [(r (rewrite* term rst)) (b (before-matches? before term))] 
        (if b (cons (apply-after b after) r) r))]))
 
-(define (before-matches? [before : (ArithExpr* Subst)] [term : ArithExpr]) : (U False (Immutable-HashTable Subst ArithExpr))
+;; Given the left hand side of a rewrite rule and a coressponding AST, walks over the data
+;; sturctures in parrallel and checks to ensure that they match. If they do match a mapping of
+;; names to AST fragments is returned, otherwise #f
+(define (before-matches? [before : ArithExpr-Rule] [term : ArithExpr]) : (Option RewriteEnv)
   (match* (before term)
-    [((? Subst?) _) (make-immutable-hash (list (cons before term)))]
-    [((BinOp a0 op0 b0) (BinOp a1 op1 b1)) (let [(a (before-matches? a0 a1)) (b (before-matches? b0 b1)) (op (before-matches? op0 op1))]
-                                             (and a b op (hash-union a b op)))]
-    [(_ _) (and (equal? before term) (make-immutable-hash '()))]))
+    [((Subst s) _) (hash s term)]
+    [((BinOp a0 op0 b0) (BinOp a1 op1 b1))
+     (let [(a (before-matches? a0 a1)) (b (before-matches? b0 b1)) (op (before-matches? op0 op1))]
+       (and a b op (hash-union a b op)))]
+    [(_ _) (and (equal? before term) #hash())]))
 
-(define (apply-after [env : (Immutable-HashTable Subst ArithExpr)] [after : (ArithExpr~* Subst)]) : ArithExpr~
+;; Given a rewrite environmnet containing parts of the original AST at given symbols, plugs the
+;; apporpriate parts of the AST in for the given substitution holes in the rewrite rule
+(define (apply-after [env : RewriteEnv] [after : ArithSetExpr-Rule]) : ArithSetExpr
   (match after
-    [(? Subst?) (hash-ref env after)]
-    [(BinOp a op b) (BinOp (apply-after env a) (cast (apply-after env op) ArithOp~) (apply-after env b))]
-    [(Choices clauses) (Choices (map (lambda ([a : (ArithExpr~* Subst)]) (apply-after env a)) clauses))]
+    [(Subst s) (hash-ref env s)]
+    [(BinOp a op b)
+     (BinOp (apply-after env a) (cast (apply-after env op) ArithSetOp) (apply-after env b))]
+    [(Choices clauses) (Choices (map (λ ([a : ArithSetExpr-Rule]) (apply-after env a)) clauses))]
     [(or (? integer?) (? symbol?)) after]))
-                                           
-(rewrite (BinOp 3 '+ 4) EM)
+
+;; --------------------------------------------------------------------------------------------------
+(module+ test
+  (require typed/rackunit)
+
+  
+  (define EM : Error-Model (list (Rewrite-Rule
+                                  (BinOp (Subst 'a) '+ (Subst 'b))
+                                  (BinOp (Subst 'a) (Choices '(- * /)) (Subst 'b)))))
+  
+  (check-equal? (rewrite (BinOp 3 '+ 4) EM)
+                '#s(Choices (#s(BinOp #s(Choices (3)) + #s(Choices (4)))
+                             #s(BinOp 3 #s(Choices (- * /)) 4)))))
 

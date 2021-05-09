@@ -4,13 +4,14 @@
 
 ;; normal mPy
 (define-type ArithExpr (ArithExpr* Nothing))
-(define-type (ArithExpr* P) (U P Integer Symbol (BinOp ArithExpr ArithOp)))
+(define-type (ArithExpr* P) (U P Integer Symbol (BinOp (ArithExpr* P) ArithOp)))
 (define-type ArithOp (U '+ '* '- '/ '**))
 
 ;; rewritten ~mPy~
-(define-type ArithExpr~ (ArithExpr~* Nothing))
-(define-type (ArithExpr~* P) (U Integer Symbol (BinOp ArithExpr~ ArithOp~) (Choices ArithExpr~) P))
-(define-type ArithOp~ (U ArithOp (Choices ArithOp~)))
+(define-type ArithSetExpr (ArithSetExpr* Nothing))
+(define-type (ArithSetExpr* P) (U Integer Symbol (BinOp (ArithSetExpr* P) ArithSetOp)
+                                (Choices (ArithSetExpr* P)) P))
+(define-type ArithSetOp (U ArithOp (Choices ArithSetOp)))
 
 (struct (A) Choices ([clauses : (Listof A)]) #:prefab)
 
@@ -18,9 +19,11 @@
 (struct (A O) BinOp ([a0 : A] [op : O] [a1 : A]) #:prefab)
 
 ;; Error Model
-(struct Subst ([s : Symbol]) #:prefab)
 (define-type Error-Model (Listof Rewrite-Rule))
-(struct Rewrite-Rule ([before :  (ArithExpr* Subst)] [after : (ArithExpr~* Subst)]) #:prefab)
+(struct Rewrite-Rule ([before : ArithExpr-Rule] [after : ArithSetExpr-Rule]) #:prefab)
+(define-type ArithSetExpr-Rule (ArithSetExpr* Subst))
+(define-type ArithExpr-Rule (ArithExpr* Subst))
+(struct Subst ([s : Symbol]) #:prefab)
 
 ;; Sketch
 ; prefab causes out of memory error on IfSK
