@@ -112,6 +112,7 @@ MultiType teacher() {
     return binOpMT(new MultiType(val=0, flag=INTEGER), binOpMT(x, y, MULT_OP), SUB_OP);
 }
 ```
+*Indentation in here was added by me, but otherwise the code is unchanged.*
 ```bash
 >>  ~/sketch-1.7.6/sketch-frontend/sketch --fe-output-xml -- -n out.sk
 ```
