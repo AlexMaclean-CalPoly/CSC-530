@@ -1,0 +1,113 @@
+
+int INTEGER = 0;
+int BOOLEAN = 1;
+
+MultiType ADD_OP = new MultiType(val=0, flag=INTEGER);
+MultiType SUB_OP = new MultiType(val=1, flag=INTEGER);
+MultiType DIV_OP = new MultiType(val=2, flag=INTEGER);
+MultiType MULT_OP = new MultiType(val=3, flag=INTEGER);
+
+struct MultiType {
+    int val;
+    int flag;
+    bit bval;
+}
+
+MultiType binOpMT(MultiType a, MultiType b, MultiType op) {
+    if (op == ADD_OP)
+        return addMT(a, b);
+    if (op == SUB_OP)
+        return subMT(a, b);
+    if (op == MULT_OP)
+        return multMT(a, b);
+    if (op == DIV_OP)
+        return divMT(a, b);
+}
+
+MultiType addMT(MultiType a, MultiType b) {
+    assert a.flag == b.flag;
+    if(a.flag == INTEGER)
+        return new MultiType(val=a.val+b.val, flag = INTEGER);
+}
+
+MultiType subMT(MultiType a, MultiType b) {
+    assert a.flag == b.flag;
+    if(a.flag == INTEGER)
+        return new MultiType(val=a.val-b.val, flag = INTEGER);
+}
+
+MultiType multMT(MultiType a, MultiType b) {
+    assert a.flag == b.flag;
+    if(a.flag == INTEGER)
+        return new MultiType(val=a.val*b.val, flag = INTEGER);
+}
+
+MultiType divMT(MultiType a, MultiType b) {
+    assert a.flag == b.flag;
+    if(a.flag == INTEGER)
+        return new MultiType(val=a.val/b.val, flag = INTEGER);
+}
+
+bit MTEquals(MultiType a, MultiType b) {
+    if (a.flag == b.flag && a.flag == INTEGER)
+        return a.val == b.val;
+    if (a.flag == b.flag && a.flag == BOOLEAN)
+        return a.bval == b.bval;
+
+    return 0;
+}
+
+harness void main() {
+    int totalCost = 0;
+
+    MultiType result1 = teacher();
+    MultiType result2 = student();
+
+    if(choice5164) totalCost++;
+    if(choice5162) totalCost++;
+    if(choice5166) totalCost++;
+
+    assert MTEquals(result1, result2);
+    minimize(totalCost);
+}
+bit choice5164 = 0;
+bit choice5162 = 0;
+bit choice5166 = 0;
+MultiType student() {
+MultiType x = choices5161();
+MultiType y = binOpMT(new MultiType(val=80, flag=INTEGER), new MultiType(val=2, flag=INTEGER), DIV_OP);
+return binOpMT(binOpMT(x, y, MULT_OP), choices5165(y, x), MULT_OP);
+}
+
+MultiType choices5165(MultiType y, MultiType x) {
+if (??) {
+return new MultiType(val=1, flag=INTEGER);
+} else {
+choice5166 = 1;
+return new MultiType(val=-1, flag=INTEGER);
+}
+}
+
+MultiType choices5163() {
+if (??) {
+return MULT_OP;
+} else {
+choice5164 = 1;
+return SUB_OP;
+}
+}
+
+MultiType choices5161() {
+if (??) {
+return binOpMT(new MultiType(val=3, flag=INTEGER), new MultiType(val=5, flag=INTEGER), ADD_OP);
+} else {
+choice5162 = 1;
+return binOpMT(new MultiType(val=3, flag=INTEGER), new MultiType(val=5, flag=INTEGER), choices5163());
+}
+}
+
+MultiType teacher() {
+MultiType x = binOpMT(new MultiType(val=3, flag=INTEGER), new MultiType(val=5, flag=INTEGER), SUB_OP);
+MultiType y = binOpMT(new MultiType(val=80, flag=INTEGER), new MultiType(val=2, flag=INTEGER), DIV_OP);
+return binOpMT(new MultiType(val=0, flag=INTEGER), binOpMT(x, y, MULT_OP), SUB_OP);
+}
