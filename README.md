@@ -5,7 +5,7 @@ We wrote a translator for the sketch language. Given an sexp style input, we tak
 
 ## Example
 Student program:
-```lisp
+```py
 (
     (x = (3 + 5))
     (y = (80 / 2))
@@ -13,7 +13,7 @@ Student program:
 )
 ```
 Teacher program:
-```lisp
+```py
 (
     (x = (3 - 5))
     (y = (80 / 2))
@@ -21,7 +21,7 @@ Teacher program:
 )
 ```
 Error model:
-```lisp
+```py
 (
     ((($ a) + ($ b)) -> (($ a) (? * -) ($ b)))
     (1 -> -1)
