@@ -1,7 +1,6 @@
 # Autograder
 
-We wrote a translator for the sketch language. Given an sexp style input, we
-take a student program, a teacher program, and a set of transformation rules and transform them into a mPy~ program. We then transform this into sketch format which is plugged into sketch itself. The output is an `xml` file with the list of rules applied with the mizimized weight.
+We wrote a translator for the sketch language. Given an sexp style input, we take a student program, a teacher program, and a set of transformation rules and transform them into a mPy~ program. We then transform this into sketch format which is plugged into sketch itself. The output is an `xml` file with the list of rules applied with the minimized weight.
 
 
 ## Example
