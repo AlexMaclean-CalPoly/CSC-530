@@ -1,0 +1,236 @@
+\documentclass{handout}
+
+\include{preamble}
+
+\HW{1}
+\Due{October 11, 2019}
+
+\begin{document}
+\maketitle
+
+\begin{tabular}{ll}
+\textbf{Total points:} & 100 \\
+\textbf{Deliverables:} 
+& \texttt{classify.rkt} containing your implementation for Problem \ref{prob:classify}.\\
+& \texttt{k-coloring.rkt} containing your implementation for Problem \ref{prob:kcol}.\\
+& \texttt{hw1.pdf} containing typeset solutions to the remaining problems.\\
+\textbf{Sources:} 
+& \href{\gitlab}{\gitlab}.\\
+\end{tabular}
+
+
+\section{Propositional Logic and Normal Forms (30 points)}\label{logic}
+
+
+\begin{questions}
+
+\item (5 points) \label{prob:classify} Use the solution skeleton in \href{\gitlab/tree/master/hw1/logic/classify.rkt}{\texttt{classify.rkt}}, 
+write a \rosette\ procedure that takes as input a formula $F$ in propositional logic and outputs
+\begin{itemize}
+\item \texttt{'TAUTOLOGY} if $I \models F$ for every interpretation $I$;
+\item \texttt{'CONTRADICTION} if $I \not\models F$ for every interpretation $I$; and, 
+\item \texttt{'CONTINGENCY} if there are two interpretations $I$ and $I'$ such that $I\models F$ and $I'\not\models F$.
+\end{itemize}
+Your procedure may contain at most two solver-aided queries (such as \href{https://docs.racket-lang.org/rosette-guide/ch_syntactic-forms_rosette.html#%28form._%28%28lib._rosette%2Fquery%2Fform..rkt%29._solve%29%29}{\texttt{solve}}), 
+and if it contains more than one query, then the two queries must be different (i.e., you cannot use \texttt{solve} twice).
+
+
+
+\item (5 points)  Convert the following formula to an equisatisfiable one in CNF using Tseitin's encoding: 
+\[\neg ( \neg r \rightarrow \neg (p \land q))\]
+Write the final CNF as the answer.  
+Use $a_\phi$ to denote the auxiliary variable for the formula $\phi$;
+for example, $a_{p\wedge q}$ should be used to denote the auxiliary variable for $p\wedge q$.
+Your conversion should not introduce auxiliary variables for negations.
+
+
+
+\item (10 points)  Let $\phi$ be a propositional formula in NNF, and let $I$ be an interpretation of $\phi$. Let the \emph{positive set} of $I$ with respect to $\phi$, denoted $\emph{pos}(I, \phi)$, be the literals of $\phi$ that are satisfied by $I$. As an example, for the NNF formula $\phi = (\neg r \land p) \lor q$ and the interpretation $I = [r \mapsto \bot, p \mapsto \top, q \mapsto \bot]$, we have $\emph{pos}(I, \phi) = \{ \neg r, p \}$. Prove the following theorem about the monotonicity of NNF: 
+
+{\bf Monotonicity of NNF:} For every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$. 
+
+(\textbf{Hint:} Use structural induction.) \label{prob:NNF}
+
+
+
+\item (10 points) Let $\phi$ be an NNF formula.  Let $\hat{\phi}$ be a formula derived from $\phi$ using a modified version of Tseitin's encoding in which the CNF constraints are derived from implications rather than bi-implications.   For example, given the formula
+\[a_1\land (a_2 \lor \neg a_3),\]
+the new encoding is the CNF equivalent of the following, where $x_0, x_1, x_2$ are fresh auxiliary variables:\looseness=-1
+\[
+\begin{array}{ll}
+x_0 & \land \\
+(x_0 \rightarrow a_1 \land x_1) & \land \\
+(x_1 \rightarrow a_2 \lor x_2) & \land \\
+(x_2 \rightarrow \neg a_3) &  \\
+\end{array}
+\]
+Note that Tseitin's encoding to CNF starts with the same formula, except that $\rightarrow$ is replaced with $\leftrightarrow$.  As a result, the new encoding has roughly half as many clauses as the Tseitin's encoding.
+
+\medskip
+Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.  
+
+\medskip
+(\textbf{Hint}: Use the theorem from Problem \ref{prob:NNF}.)
+
+
+
+\end{questions}
+
+\pagebreak
+
+\section{SAT solving (20 points)}\label{solving}
+
+
+\begin{questions}
+
+\item (20 points) In this problem, you will trace the execution of \cadical, a high-performance SAT solver, on a sample CNF, and use this trace to reconstruct the abstract state transitions of the underlying CDCL algorithm (\href{\website/doc/L04.pdf}{Lecture 4}). 
+
+The \href{\gitlab/tree/master/hw1/sat/sample.cnf}{sample CNF} is given in the \dimacs\ format and represents the following clauses: 
+\begin{center}
+$(\neg x_1 \lor x_2 \lor x_4) \wedge (x_1 \lor x_3)  \wedge (\neg x_4 \lor \neg x_2) \wedge (\neg x_4 \lor \neg x_1 \lor x_2)  \wedge (x_3 \lor \neg x_1)  \wedge (\neg x_3 \lor \neg x_2 \lor x_4) \wedge (x_1 \lor x_4) \wedge (\neg x_2 \lor x_1)$
+\end{center}
+
+To start, clone \cadical\ from GitHub and checkout tag \texttt{sc18}. Next, follow the instructions in the included \texttt{README.md} file to configure and build the solver in logging mode using \cc{./configure -l && make}. Finally, run the solver (in \texttt{build/cadical}) with the logging (\texttt{-l}) option on  \href{\gitlab/tree/master/hw1/sat/sample.cnf}{\texttt{sample.cnf}}, and the solver will output a detailed trace of its execution. 
+
+Using this detailed trace, reconstruct the behavior of the underlying CDCL algorithm by filling out the following abstract trace template, given as a list of abstract trace entries:
+
+\begin{itemize}
+\item \textbf{Level} \textcolor{green}{$i$}  \hfill{\textcolor{green}{\emph{; decision level $i$}}}
+  	\begin{itemize}
+		\item \textbf{Decision:} \textcolor{green}{$d_i$}  \hfill{\textcolor{green}{\emph{; decision literal at level $i$ or NA if level due to backtracking}}}
+		\item \textbf{BCP:} \textcolor{green}{$p_{i_0}, \ldots, p_{i_n}$} \hfill{\textcolor{green}{\emph{; literals inferred by BCP at level $i$, in the detailed trace order}}}
+		\item \textbf{Conflict Clause:}  \textcolor{green}{$l_{i_0} \ldots l_{i_k}$} \hfill{\textcolor{green}{\emph{; conflict clause or NA if no conflict at level $i$}}}
+
+		\item \textbf{Implication Graph:} \textcolor{green}{graph image} \hfill{\textcolor{green}{\emph{; implication graph at level $i$, visualized with GraphViz}}}
+
+  	\end{itemize}
+\item $\ldots$
+\end{itemize}
+
+To produce the abstract trace, create an abstract trace  entry (``Level'') whenever the decision level changes in the detailed trace due to a new decision or backtracking. When filling out the entry template, use the literal names from the detailed trace. For example, the solver will represent the literal $\neg x_1$ as \texttt{-1}. Use \href{https://www.graphviz.org}{GraphViz} to visualize the implication graph at a given level. The  \href{\gitlab/tree/master/hw1/sat/impl-graph.dot}{\texttt{impl-graph.dot}} file shows an example of how to specify implication graphs with GraphViz. Use the LaTeX \texttt{\textbackslash includegraphics} command to insert the resulting graph images into your \texttt{hw1.pdf} file.
+
+
+
+
+
+\end{questions}
+
+
+
+\pagebreak
+
+\section{Graph Coloring with SAT (40 points)}\label{coloring}
+
+A graph is \emph{k-colorable} if there is an assignment of $k$ colors to its vertices such that no two adjacent vertices have the same color.  Deciding if such a coloring exists is a classic NP-complete problem with many practical applications, such as register allocation in compilers.  In this problem, you will develop a CNF encoding for graph coloring and apply them to graphs from various application domains, including course scheduling, N-queens puzzles, and register allocation for real code.
+
+A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_n\}$ and edges $E=\{\langle v_{i_1}, w_{i_1}\rangle,\ldots,\langle v_{i_m}, w_{i_m}\rangle\}$.  Given a set of $k$ colors $C=\{c_1,\ldots,c_k\}$, the \emph{k-coloring} problem for $G$ is to assign a color $c\in C$  to each vertex $v\in V$ such that for every edge $\langle v,w\rangle\in E$, $\mathsf{color}(v)\neq\mathsf{color}(w)$.
+
+\begin{questions}
+\item (10 points) Show how to encode an instance of a $k$-coloring problem into a propositional formula $F$ that is satisfiable iff a $k$-coloring exists.
+\begin{enumerate}
+\item Describe a set of propositional constraints asserting that every vertex is colored.  Use the notation $\mathsf{color}(v) = c$ to indicate that a vertex $v$ has the color $c$.  Such an assertion is encodable as a single propositional variable $p^c_v$ (since the set of vertices and colors are both finite).
+
+
+
+\item Describe a set of propositional constraints asserting that every vertex has at most one color. 
+
+
+
+\item Describe a set of propositional constraints asserting that no two adjacent vertices have the same color.  
+
+
+
+\item Identify a significant optimization in this encoding that reduces its size asymptotically.  (\textbf{Hint:} Can any constraints be dropped?  Why?)
+
+
+
+\item Specify your constraints in CNF.  For $|V|$ vertices, $|E|$ edges, and $k$ colors, how many variables and clauses does your encoding require?
+
+
+
+\end{enumerate} \label{prob:encoding}
+
+\item (20 points) \label{prob:kcol} Implement the above encoding in \href{http://racket-lang.org}{Racket}, using the provided \href{\gitlab/tree/master/hw1/graph-coloring}{solution skeleton}.  See the  \href{\gitlab/blob/master/hw1/README.md}{\texttt{README}} file for instructions on obtaining solvers and the database of graph coloring problems.  Your program should generate the encoding for a given graph (see \href{\gitlab/tree/master/hw1/graph-coloring/graph.rkt}{\texttt{graph.rkt}}), call a SAT solver on it (\href{\gitlab/tree/master/hw1/graph-coloring/solver.rkt}{\texttt{solver.rkt}}), and then decode the result into an assignment of colors to vertices  (see \href{\gitlab/tree/master/hw1/graph-coloring/examples.rkt}{\texttt{examples.rkt}} and \href{\gitlab/tree/master/hw1/graph-coloring/k-coloring.rkt}{\texttt{k-coloring.rkt}}).
+
+Your implementation should be able to solve all of the easy and medium instances in under 15 minutes on an ordinary laptop. 
+(The reference implementation does so in about 7 minutes.)
+
+
+
+\item (5 points) Describe a CNF encoding for $k$-coloring that uses $O(|V|\log k+|E|\log k)$ variables and clauses.
+
+
+
+\item (5 points) Most modern SAT solvers support \emph{incremental solving}---that is, obtaining a solution to a CNF, adding more constraints, obtaining another solution, and so on.  Because the solver keeps (some) learned clauses between invocations, incremental solving is  generally the fastest way to solve a series of related CNFs.  How would you apply incremental solving to your encoding from Problem \ref{prob:kcol} to find the smallest number of colors needed to color a graph (i.e., its chromatic number)?  \label{prob:last}
+
+
+\end{questions}
+
+\pagebreak
+
+\section{Optimal Graph Coloring with Variations on SAT (10 points)}\label{varsat}
+
+\newcommand\pwm{pwMaxSAT}
+\newcommand\tocnf{\operatorname{toCNF}}
+
+Consider the following variations on the propositional satisfiability (SAT) problem discussed in \href{\website/doc/L05.pdf}{Lecture 5}:
+
+\begin{description}
+
+\item[Partial Weighted MaxSAT] Given a CNF formula $\phi_H = \bigwedge_{c \in H} c$ corresponding to a set of \emph{hard} clauses $H$, and a CNF formula $\phi_S = \bigwedge_{c \in S} c$ corresponding to a set of \emph{soft} CNF clauses $S$ with weights $w : S \rightarrow \mathbb{Z^+}$, the Partial Weighted MaxSAT problem is to find an assignment $A$ to the problem variables that satisfies all the hard clauses and that maximizes the weight of the satisfied soft clauses. That is, $A \models \bigwedge_{c \in H} c$, and if we let $C = \{ c\in S | A\models c\}$, then there is no $C'\subseteq S$ such that $H\cup C'$ is satisfiable and $\sum_{c'\in C'} w(c') > \sum_{c\in C} w(c)$.
+
+\item[Pseudo-Boolean Optimization]  Let $B$ be a set of \emph{pseudo-boolean constraints} of the form $\sum a_{ij}x_j \geq b_i$, where $x_j$ is a variable over $\{0, 1\}$ and $a_{ij}, b_i, c_j$ are integer constants.  The Pseudo-Boolean Optimization problem is to satisfy all constraints in $B$ while minimizing a linear function $\sum c_j \cdot x_j$.
+\end{description}
+%
+
+Let $G = \langle V, E\rangle$ be a finite graph and $C_k = \{ c_1, \ldots, c_k \}$ a set of $k$ colors. 
+Let $P(G, C_k)$ be the CNF formula produced by applying your encoding from Problems \ref{prob:encoding}-\ref{prob:kcol}  
+to the graph $G$ and the coloring $C_k$. 
+As before, we use $p_v^c$ to denote the propositional variable indicating that the vertex $v\in V$ has the color $c\in C_k$.
+
+
+\begin{questions}
+
+\item (5 points) Explain how to create a Partial Weighted MaxSAT instance $P_{\text{opt}}(G)$ 
+such that every solution to $P_{\text{opt}}(G)$ represents a valid $\chi$-coloring of $G$ where $\chi$ is 
+the chromatic number of $G$ (i.e., the smallest possible number of colors needed to color $G$). 
+
+Your encoding of  $P_{\text{opt}}(G)$ may use $P(G, C_k)$ for at most one $k$ of your choosing.  
+So, $P_{\text{opt}}(G)$ cannot use, for example, both $P(G, C_1)$ and $P(G, C_2)$.
+
+Write down  $P_{\text{opt}}(G)$ by specifying the set $H$ of hard clauses, 
+the set $S$ of soft clauses, and the function $w : S \rightarrow \mathbb{Z^+}$ that assigns a positive weight to each soft clause in $S$. 
+
+\begin{align*}
+   H    	&=     \bigwedge \ldots \\
+   S    	&=     \bigwedge \ldots \\
+   w(s)    	&=    \ldots \text{ for each clause } s  \in S\\ 
+\end{align*} 
+
+
+
+\item (5 points)  Explain how to create a Pseudo-Boolean Optimization instance $P_{\text{opt}}(G)$ 
+such that every solution to $P_{\text{opt}}(G)$ represents a valid $\chi$-coloring of $G$ where $\chi$ is 
+the chromatic number of $G$ (i.e., the smallest possible number of colors needed to color $G$). 
+
+To create $P_{\text{opt}}(G)$, observe that every CNF instance  
+can be transformed into a set of equivalent pseudo-boolean constraints.  
+To apply this observation, explain how to do the transformation. 
+
+As before, your encoding of  $P_{\text{opt}}(G)$ may use the  pseudo-boolean equivalent of  $P(G, C_k)$ for at most one $k$ of your choosing.  
+
+
+Write down  $P_{\text{opt}}(G)$ by specifying the pseudo-boolean constraints to solve and the linear function to minimize: 
+
+\begin{align*}
+   \text{minimize}  	 \quad& \sum \ldots \\
+   \text{subject to}    	\quad&  \bigwedge \ldots \\
+\end{align*} 
+
+
+
+
+\end{questions}
+
+
+\end{document}

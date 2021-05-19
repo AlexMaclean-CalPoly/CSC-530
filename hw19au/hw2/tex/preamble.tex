@@ -1,0 +1,57 @@
+\usepackage{listings}
+\usepackage{mathpartir}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{beramono}
+
+
+\definecolor{blue}{RGB}{0,128,200}
+\definecolor{green}{RGB}{0,128,0}
+\definecolor{gray}{RGB}{64, 64, 64}
+
+\hypersetup{
+colorlinks=true,
+filecolor=blue,
+urlcolor=blue,
+citecolor=blue,
+linkcolor=blue}
+
+\SetCourseTitle{CSE 507:  Computer-Aided Reasoning for Software}
+\SetInstructor{Emina Torlak}
+\SetSemester{Fall 2019}
+
+\newcommand\hw{}
+\newcommand\HW[1]{\renewcommand\hw{#1}\SetHandoutTitle{Homework Assignment #1}}
+\newcommand\Due[1]{\SetDueDate{#1 at 23:00}}
+
+\newcommand\gitlab{https://gitlab.cs.washington.edu/cse507/hw19au}
+\newcommand\website{https://courses.cs.washington.edu/courses/cse507/19au}
+\newcommand\rosette{\href{https://emina.github.io/rosette/}{Rosette}}
+\newcommand\racket{\href{http://racket-lang.org}{Racket}}
+\newcommand\cadical{\href{https://github.com/arminbiere/cadical}{CaDiCaL}}
+\newcommand\dimacs{\href{https://www.satcompetition.org/2011/format-benchmarks2011.html}{DIMACS}}
+\newcommand\alloy{\href{http://alloytools.org}{Alloy}}
+
+\newcommand\lecture[1]{\href{\website/doc/L#1.pdf}{Lecture #1}}
+\newcommand\src[2][]{\href{\gitlab/tree/master/hw\hw/#1#2}{\texttt{#2}}}
+\newcommand\file[1]{\src[#1]{#1}} 
+
+\lstloadlanguages{Lisp}
+\lstset{language=lisp}
+\lstset{linewidth=3in}
+\lstset{xleftmargin=0.3in}
+\lstset{frame=none}
+\lstset{framesep=0.1in}
+\lstset{captionpos=b}
+\lstset{basicstyle=\small\ttfamily}
+\lstset{keywordstyle=\ttfamily\bfseries}
+\lstset{commentstyle=\color{DarkGreen}}
+\lstset{alsoletter={-}}
+\lstset{morekeywords={return, define, define-fragment}}
+\lstset{backgroundcolor=\color{white}}
+\lstdefinestyle{inline}{numbers=none,basicstyle=\ttfamily}
+\newcommand\cc[1]{{\lstset{style=inline}\lstinline{#1}}}
+\newcommand\ccm[1]{{\lstset{style=inline}\lstinline[mathescape]|#1|}}

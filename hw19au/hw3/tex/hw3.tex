@@ -1,0 +1,316 @@
+\documentclass{handout}
+
+\include{preamble}
+
+\HW{3}
+\Due{November 22, 2019}
+
+\begin{document}
+\maketitle
+
+\begin{tabular}{ll}
+\textbf{Total points:} & 100 \\
+\textbf{Deliverables:} 
+& \texttt{hw3.pdf} containing typeset solutions to Problems \ref{prob:imp-first}--\ref{prob:imp-last}, \ref{prob:hoare-study}, and \ref{prob:ver-study}.\\
+& \texttt{proofs.rkt} containing your proof outlines for Problem \ref{prob:hoare-proofs}.\\
+& \texttt{ivl.rkt} containing your \imp to \ivl translations for Problems \ref{prob:ivl-inv}-\ref{prob:ivl-unroll}.\\
+& \texttt{seqlib.dfy} containing your Dafny code and annotations for Problems~\ref{prob:dafny-first}-\ref{prob:dafny-last}.\\
+\end{tabular}
+
+\section{Implementing \imp (10 points)}\label{sec:imp}
+
+In Sections~\ref{sec:imp:hoare}-\ref{sec:imp:wp/sp/se} of this assignment, you
+will use and implement several verification tools for \imp, the simple
+imperative language introduced in \lecture{11}. To help you get started, we have
+provided an implementation of \imp in \rosette. In particular,
+\src[imp/]{imp.rkt} contains an interpreter for \imp programs. The interpreter
+assumes the following s-expression syntax for \imp, where $F^*$ stands for zero
+or more repetitions of the form $F$: 
+
+
+{\tt\small
+\begin{tabular}{lcl}
+$P$ &:=&  (\textbf{procedure} $f$ ($x^*$) \textbf{:} ($x^*$) $S$) \\
+$S$ &:=&  (\textbf{skip}) $|$ (\textbf{abort}) $|$  (\textbf{:=}\ $x$ $E$) $|$ 
+          (\textbf{if} $C$ $S$ $S$) $|$ (\textbf{while} $C$ $S$) $|$
+          (\textbf{begin} $S^*$)  \\
+$C$ &:=&  \textbf{true} $|$ \textbf{false} $|$ (\textbf{!} $C$) $|$ 
+          (\textbf{\&\&} $C^*$) $|$ (\textbf{\textbar\textbar} $C^*$) $|$ 
+          (\textbf{=>} $C$ $C$) $|$ (\textbf{<=>} $C$ $C$) $|$ \\
+    &&    (\textbf{=} $E$ $E$) $|$ (\textbf{<=} $E$ $E$) $|$ (\textbf{>=} $E$ $E$) $|$
+          (\textbf{<} $E$ $E$) $|$ (\textbf{>} $E$ $E$) \\
+$E$ &:=&  $x$ $|$ $Z$ $|$ (\textbf{+} $E^*$) $|$ (\textbf{*} $E^*$) $|$ 
+          (\textbf{-} $E$ $E^*$)  \\
+$Z$ &:=& integer literal \\
+$x$ &:=& variable identifier \\
+$f$ &:=& procedure identifier \\
+\end{tabular}}
+
+
+The file \src[imp/]{examples.rkt} shows how to run the \imp interpreter on a few
+sample programs. 
+
+To implement and use tools for \imp, you will need to understand the provided
+semantics in detail. To help with this, study the code in \src[imp/]{imp.rkt}
+and answer the following questions.
+
+\begin{questions}
+  \item (2 points) \label{prob:imp-first} The \imp grammar uses the
+  \lstinline{begin} form to compose zero or more \imp statements into a single
+  statement. What is the meaning of the statements \lstinline{(begin)} and
+  \lstinline{(begin $S$)} for any $S$? 
+  
+  
+
+  \item (4 points) The \imp interpreter requires every variable to be assigned
+  before it is referenced, and it also implements simple lexical scoping. Some
+  \imp statements create local scopes, and variables defined (i.e., assigned
+  only) in a local scope cannot be accessed outside of it. Which \imp statements
+  (\lstinline{if}, \lstinline{while}, or \lstinline{begin}) introduce local
+  scopes and what part of the statement has its own local scope?
+  
+  
+
+  \item (4 points) \label{prob:imp-last}  What are the possible outcomes of
+  interpreting an arbitrary \imp program on arbitrary inputs? Assume that the
+  program is syntactically well-formed; it obeys the \imp scoping rules; and it
+  is given the right number of inputs according to its signature.  
+  
+  
+\end{questions}
+
+\section{Hoare Logic for \imp (20 points)}\label{sec:imp:hoare}
+
+The file \src[imp/]{hoare.rkt} contains our first verifier for \imp, and
+\src[imp/]{proofs.rkt} shows how to use it to check proof outlines. This
+verifier implements the Hoare logic rules presented in \lecture{11}, with some
+small optimizations that make the verifier easier to use than a literal
+implemenation of the rules would be. 
+
+To enable checking of \imp programs with the Hoare verifier, we modify the \imp
+grammar to include \lstinline{#:claim} annotations that specify Hoare logic
+predicates to be checked:
+
+{\tt\small
+\begin{tabular}{lcl}
+$S$ &:=&  $\ldots$ $|$ (\textbf{begin} $A^*$)  \\
+$A$ &:=&  $S$ $|$ (\textbf{\#:claim} $C$)\\
+\end{tabular}}
+
+To pass the Hoare verifier, a program must include enough \lstinline{#:claim}
+annotations to form a valid proof outline, as defined in \lecture{11}. In a
+complete proof outline, each statement $S$ other than \lstinline{begin} is
+surrounded by two claims, \lstinline{(#:claim $P$) $S$ (#:claim $Q$)}, such that
+$\{P\}S\{Q\}$ is a valid Hoare triple. If a claim $P_1$ immediately precedes a
+claim $P_2$, then it must be the case that $P_1 \implies P_2$. That is,
+consecutive claims must be related by the Rule of Consequence. Finally, each
+\lstinline{begin} statement should start and end with claims, 
+\lstinline{(begin (#:claim $P$) $S^*$ (#:claim $Q$))}, such that 
+$\{P\}S^*\{Q\}$ is a valid Hoare triple.
+
+
+\begin{questions}
+\item (18 points) \label{prob:hoare-proofs} Complete the proof outlines in
+\src[imp/]{proofs.rkt} so that all included calls to the verifier succeed. Your
+solution may add as many \lstinline{#:claim} annotations to a program as needed.
+You may also wrap the bodies of procedures, \lstinline{while} loops, and
+\lstinline{if} branches with \lstinline{begin} statements. But you may not
+modify the code in any other way. Submit your copy of \src[imp/]{proofs.rkt}.
+
+
+
+\item (2 points) \label{prob:hoare-study} The rules in \src[imp/]{hoare.rkt}
+allow you to omit some annotations that would be required if the verifier used
+the rules given in lecture. Explain briefly (in a few sentences) how the
+implemented rules differ from the presented ones, and why these optimizations
+are correct. 
+
+
+
+\end{questions}
+
+\section{WP, SP, and SE for \imp (30 points)}\label{sec:imp:wp/sp/se}
+
+As you saw in the previous section, fully annotating programs is a lot of work!
+Ideally, we would write just the annotations that require human
+insight---preconditions, postconditions, and loop invariants---and offload the
+rest of the work to an automated tool. So, in this section, you will develop key
+parts of three such tools: a verifier based on weakest preconditions (WP), a
+verifier based on strongest postconditions (SP), and a bounded verifier based on
+symbolic execution (SE).
+
+The code for all three tools can be found in \src[imp/]{tools.rkt}. The tools
+take as input \imp programs that are annotated with preconditions,
+postconditions, and (optionally) loop invariants according to the following
+grammar, which extends the grammar from Section~\ref{sec:imp}:
+
+{\tt\small
+\begin{tabular}{lcl}
+$P$ &:=&  (\textbf{procedure} $f$ ($x^*$) \textbf{:} ($x^*$) (\textbf{\#:requires} $C$)  (\textbf{\#:ensures} $C$) $S$) \\
+$S$ &:=&  $\ldots$ $|$  (\textbf{while} $C$ (\textbf{\#:invariant} $C$) $S$) \\
+\end{tabular}}
+
+The file \src[imp/]{verified.rkt} contains sample programs in the extended \imp\
+language. 
+
+Following  the approach from \lecture{13}, the tools do not work on this source
+language directly. Instead, they first transform \imp programs into loop-free
+code in an intermediate verification language, \ivl, which drops loops and
+annotations from \imp and includes three new statements: \lstinline{(assert $C$)}, 
+\lstinline{(assume $C$)}, and \lstinline{(havoc $x$)}. Then, they compute
+verification conditions for the resulting program, and discharge them with
+Z3.\looseness=-1
+
+
+Problems \ref{prob:ivl-inv}-\ref{prob:ivl-unroll} ask you to implement two
+different translations from \imp\ to \ivl, one for unbounded (WP/SP)
+verification and one for bounded (SE) verification. The file \src[imp/]{ivl.rkt}
+contains the skeleton code for both translations. When you complete the code,
+all tool invocations in \src[imp/]{verified.rkt} should produce the expected
+results. Submit your copy of \src[imp/]{ivl.rkt} as the answer to these
+problems.
+
+Problem \ref{prob:ver-study} asks you to study the code in \src[imp/]{tools.rkt}
+and answer two questions about it. Include the answers to these questions in
+your \texttt{hw3.pdf} submission.
+
+
+\begin{questions}
+
+\item (10 points) \label{prob:ivl-inv} The WP and SP verifiers expect the input
+program to be annotated with a precondition, postcondition, and a loop invariant
+for every loop in the program. Given such a program, they call the procedure
+\lstinline{cut} from \src[imp/]{ivl.rkt} to obtain the corresponding \ivl\
+program. Complete the implementation of \lstinline{cut} to soundly eliminate all
+\lstinline{while} loops as shown in \lecture{13}.
+
+
+
+\item (10 points) \label{prob:ivl-unroll} The SE bounded verifier expects the
+input program to be annotated with a precondition and a postcondition, but it
+requires no loop invariants.  Instead, it takes as input a non-negative integer
+$k$ and unrolls every loop $k$ times to make the program finite. The unrolling
+transformation is performed by the procedure \lstinline{unroll}. Complete the
+implementation of \lstinline{unroll}  so that the resulting \ivl program can
+perform up to $k$ iterations of every loop in the original \imp program,
+ensuring that  there are no inputs on which the transformed program fails and
+the original one does not. This means that \lstinline{unroll} cannot insert
+unwinding assertions into the transformed program, as we did in \lecture{5}.  
+
+
+
+\item (10 points) \label{prob:ver-study} Study the code in \src[imp/]{tools.rkt}
+and answer the following questions.
+
+\begin{enumerate}
+\item The procedure \lstinline{wp} calculates the weakest precondition of
+ \lstinline{havoc} using a different rule than the one shown in \lecture{13}.
+ Briefly explain how the rules differ, and why the implemented one is
+ correct.\looseness=-1
+
+
+
+\item The procedure \lstinline{interpretS+} extends the \imp\ interpreter from
+ \src[imp/]{imp.rkt} to give meaning to \lstinline{assume}, \lstinline{assert},
+ and \lstinline{havoc} statements. The SP verifier and the SE bounded verifer
+ then use \rosette\ to turn this extended interpreter into a symbolic execution
+ engine for \ivl. The implementation of \lstinline{assert} and \lstinline{havoc}
+ is straightforward, as it relies on the corresponding constructs provided by
+ \rosette. But \rosette\ provides no construct to express assumptions. Briefly
+ explain how \lstinline{interpretS+} implements  \lstinline{assume}, and why
+ this is a correct implementation of its semantics. 
+ \end{enumerate} 
+
+
+
+
+\end{questions}
+
+\section{Verifying Programs with Dafny (40 points)}
+
+In this part of the assignment, you will use \dafny (\lecture[pptx]{12}) to develop a
+small library of verified procedures for operating on sequences. To get started,
+install the \href{https://code.visualstudio.com}{Visual Studio Code IDE} and
+then follow the instructions for installing the
+\href{https://github.com/Microsoft/dafny/wiki/INSTALL}{Dafny
+extension} for this IDE. When you first open the skeleton solution file
+\src[seq/]{seqlib.dfy} in the IDE, you will see warnings and errors issued by
+the verifier. Once you have successfully completed the assignment, these
+warnings and errors will go away. Submit your copy of \src[seq/]{seqlib.dfy} as
+the solution to the problems in this section. 
+
+Before you start working on the problems, you may want to read  the
+\href{http://rise4fun.com/Dafny/tutorial/guide}{Dafny Guide} and the
+\href{https://rise4fun.com/Dafny/tutorialcontent/Sequences}{Sequences Tutorial}.
+You may also want to read parts of the
+\href{http://www.divms.uiowa.edu/~tinelli/classes/181/Papers/dafny-reference.pdf}{Dafny
+Reference Manual}.  The key constructs you will need to know for this assignment
+are the following: \lstinline{requires}, \lstinline{ensures},
+\lstinline{modifies}, \lstinline{invariant}, and \lstinline{old}. 
+
+You can solve these problems in any order you like.  But we strongly recommend
+that you do them in the order given in the assignment and the skeleton solution.
+The problems ask you to write both proof annotations and code, and the comments
+in the solution skeleton specify what may be changed and what must remain the
+same.  Follow the directions carefully. You may implement the missing code
+however you like: if it verifies, we'll take it!  But making liberal use of the
+previously implemented components will lead to shortest solutions, with a few
+lines of code and annotation as opposed to potentially many. You may also find
+it easiest to comment out the irrelevant parts of the skeleton while working on
+a given problem, in order to suppress spurious warnings and make verification
+faster.
+
+\begin{questions}
+
+\item (10 points) \label{prob:dafny-first} The file  \src[seq/]{seqlib.dfy}
+contains a partial implementation and specification of three functions for
+operating on finite sequences of elements:
+
+\begin{itemize}
+\item \lstinline{sreverse($s$)} returns a sequence that reverses the order of
+elements in the input sequence $s$: \lstinline{sreverse([1,2,3]) == [3,2,1]}.  
+
+\item \lstinline{ssubreverse($s, \mathit{start}, \mathit{end}$)} returns a
+sequence that is like $s$ except for reversing the subsequence between the
+$\mathit{start}$ index, inclusive, and $\mathit{end}$, exclusive:
+\lstinline{ssubreverse([1,2,3],0,2) == [2,1,3]}. 
+
+\item \lstinline{srotate($s, k$)} returns a sequence that concatenates the last
+$k$ elements of $s$ with the first $|s|-k$ elements of $s$:
+\lstinline{srotate([1,2,3,4], 2) == [3,4,1,2]}. 
+\end{itemize}
+
+Each function is equipped with a lemma and a client procedure that tests it on
+specific inputs. Follow the instructions in  \src[seq/]{seqlib.dfy} to complete
+the implementation and specification of these functions so that their lemmas and
+clients are all verified.  The client code and the provided annotations may not
+be changed, and more annotations may be added to a lemma only when stated in the
+comments. 
+
+
+
+\item (20 points) Now that we have a clean functional implementation of our
+sequence operations, we would also like to develop an efficient imperative
+implementation that works on arrays.  The method \lstinline{subreverse}, for
+example, uses a linear number of in-place \lstinline{swap} operations to
+implement subsequence reversal. In fact, we specify the postcondition of
+\lstinline{subreverse} by describing its effect on the state of the input array,
+when viewed as a sequence of elements. Add enough annotations to
+\lstinline{swap} and \lstinline{subreverse} so that Dafny can verify both of
+them, as well as as the \lstinline{subreverse} client procedure.  Do not change
+any of the provided code or annotations. 
+
+
+
+\item (10 points)  \label{prob:dafny-last} As a final step, complete the
+array-based implementation and specification of array \lstinline{reverse} and
+\lstinline{rotate}. Both implementations should run in linear time and constant
+space.  Add enough annotations to \lstinline{reverse} and \lstinline{rotate} so
+that Dafny can verify both of them, as well as their client procedures.  Do not
+change any of the provided code or annotations. 
+
+
+
+\end{questions}
+
+\end{document}

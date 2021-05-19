@@ -1,0 +1,356 @@
+\documentclass{handout}
+
+\include{preamble}
+
+\HW{2}
+\Due{November 01, 2019}
+
+\begin{document}
+\maketitle
+
+\begin{tabular}{ll}
+\textbf{Total points:} & 100 \\
+\textbf{Deliverables:} 
+& \texttt{hw2.pdf} containing typeset solutions to Problems \ref{prob:smt:first}-\ref{prob:alloy:last}.\\
+& \texttt{verifier.rkt} containing your implementation for Problem \ref{prob:bvv:last}.\\
+& \texttt{uf.rkt} containing your implementation for Problems \ref{prob:uf:first}-\ref{prob:uf:last}.\\
+& \texttt{nnf.als} containing your Alloy encoding for Problems \ref{prob:alloy:first}-\ref{prob:alloy:last}.\\
+\textbf{Sources:} 
+& \href{\gitlab}{\gitlab}.\\
+\end{tabular}
+
+
+\section{SMT Solving (30 points)}
+
+\begin{questions}
+\item (5 points) \label{prob:smt:first} Apply the congruence closure algorithm
+to decide the satisfiability of the following $T_=$ formula:
+\[
+f(g(x)) = g(f(x)) \wedge f(g(f(y))) = x \wedge f(y) = x \wedge g(f(x)) \neq x
+\]
+Provide the level of detail as in \lecture{07}.  In particular, show the
+intermediate partitions (sets of congruence classes) after each merge or
+propagation step, together with a brief explanation of how the algorithm arrived
+at that partition (e.g., ``by literal $f(x) = y$, merge $f(x)$ with $y$'').
+\label{prob:first}
+
+
+
+
+\item Consider the following formula in $T_=\cup T_R$: 
+\[
+g(x + y, z) = f(g(x, y)) \wedge x + z = y \wedge z \geq 0 \wedge x \geq y \wedge g(x, x) = z \wedge f(z) \neq g(2x, 0)
+\]
+
+\begin{enumerate}
+\item (5 points) Purify the formula and show the resulting $T_=$ and $T_R$
+formulas. Show the purification results using the table below. Apply
+purification to the (current) innermost term first.  If there are several
+innermost terms, prefer the leftmost one.  Use $a_i$ to refer to the
+$i^\text{th}$ auxiliary literal, starting with $a_1$.  All occurrences of the
+same term should be mapped to the same auxiliary literal. You do not need to
+show the individual steps of the purification process, just the final result.
+
+\[
+\begin{array}{@{}l|l}
+T_=           & T_R\\ \hline
+\ldots & \ldots \\
+\end{array}
+\]
+
+
+
+\item (5 points) Use the Nelson-Oppen procedure to decide the satisfiability of
+the purified formula.  In one sentence, state which version of the procedure you
+are using and why.  Show the equality propagation  by filling out the table
+below.  If $T_i$ infers the $j^\text{th}$ equality (or disjunction of
+equalities), enter it into the $j^\text{th}$ row and $i^\text{th}$ column
+only---leave the remaining column in that row empty.
+
+\[
+\begin{array}{@{}l|l}
+T_= & T_R\\ \hline
+\ldots & \ldots \\
+\end{array}
+\]
+
+
+\end{enumerate}
+
+\item (5 points) Recall that the theory of arrays $T_A =
+\{\emph{read},\emph{write},=\}$ is defined by the following axioms.
+
+\[
+\begin{array}{@{}l}
+\forall a,i,j. \ i = j \rightarrow \emph{read}(a, i) = \emph{read}(a, j)\\
+\forall a,v,i,j. \ i = j \rightarrow \emph{read}(\emph{write}(a, i, v), j) = v\\
+\forall a,v,i,j. \ i \neq j \rightarrow \emph{read}(\emph{write}(a, i, v), j) = \emph{read}(a, j)\\
+\end{array}
+\]
+
+Prove that $T_A$ is not convex by constructing $n\geq 3$ formulas in $T_A$ such
+that $F_1 \Rightarrow (F_2 \vee\ldots \vee F_n)$ but $F_1 \not\Rightarrow F_i$
+for any $i \in [2\ldots n]$.
+
+
+
+
+\item (10 points) \label{prob:smt:last} Prove that the theory of equality $T_=$
+is convex.  
+
+
+
+
+
+\end{questions}
+
+
+
+\section{A Verifier for Superoptimization (25 points)}
+
+\emph{Superoptimization} is the task of replacing a given loop-free sequence of
+instructions with an equivalent sequence that is better according to some metric
+(e.g., shorter).  Modern superoptimizers work by employing various forms of the
+guess-and-check strategy:  given a sequence $s$ of instructions, they guess a
+better replacement sequence $r$, and then they check that $s$ and $r$ are
+equivalent.  In this problem, you will develop a simple SMT-based verifier for
+superoptimization.  Given two loop-free sequences of 32-bit integer
+instructions, your verifier will either confirm that they are equivalent or, if
+they are not, it will produce a concrete counterexample---an input on which the
+two sequences produce different outputs. 
+
+The verifier will accept programs in the \texttt{BV} language, which has the
+following grammar:
+
+{\tt\small
+\begin{tabular}{lcl}
+Prog &:=&  (\textbf{define-fragment} (id id$^\mathtt{*}$) Stmt$^\mathtt{*}$ Ret) \\
+Stmt &:=& (\textbf{define} id Expr) $|$ (\textbf{set!}\ id Expr) \\
+Ret &:=& (\textbf{return} Expr) \\
+Expr &:=& id $|$ const $|$ (\textbf{if} Expr Expr Expr) $|$ (unary-op Expr) $|$ \\
+         &&(binary-op Expr Expr) $|$ (nary-op Expr$^\mathtt{+}$)\\
+unary-op &:=& bvneg $|$ bvnot \\
+binary-op &:=& = $|$ bvule $|$ bvult $|$ bvuge $|$ bvugt $|$ bvsle $|$ bvslt  $|$ bvsge $|$ bvsgt $|$  \\
+                && bvsdiv $|$ bvsrem $|$ bvshl $|$ bvlshr $|$ bvashr $|$ bvsub\\
+nary-op &:=& bvor $|$ bvand $|$ bvxor $|$  bvadd $|$  bvmul\\
+id &:=& identifier\\
+const &:=& 32-bit integer $|$ true $|$ false\\
+\end{tabular}}
+
+Assume the following well-formedness rules for programs, which your verifier
+does not need to check:  
+\begin{enumerate}
+\item an identifier is not used before it is defined; 
+\item an identifier is not defined more than once;  
+\item the first sub-expression of an if-expression is of type boolean, and its remaining subexpressions have the same type.  
+\end{enumerate}
+The statement \texttt{(\textbf{set!}\ id Expr)}  assigns the value of
+\texttt{Expr} to the variable \texttt{id}; the types of \texttt{id} and
+\texttt{Expr} must match.  The inputs to a fragment are 32-bit integers.
+
+The operators in the \texttt{BV} language have the same semantics as the
+corresponding operators in $T_\emph{bv}$ (see the
+\href{http://rise4fun.com/z3/tutorial}{Z3 tutorial} on bitvectors). For example,
+these are valid \texttt{BV} programs:
+
+\lstset{language=lisp}
+\lstset{alsoletter={-}}
+\lstset{morekeywords={return, define, define-fragment}}
+\begin{lstlisting}
+(define-fragment (P1 x1 y1 x2 y2)
+  (return (bvmul (bvadd x1 y1) (bvadd x2 y2))))
+\end{lstlisting}
+
+\begin{lstlisting}
+(define-fragment (P2 x1 y1 x2 y2)
+  (define u1 (bvadd x1 y1))
+  (define u2 (bvadd x2 y2))
+  (return (bvmul u1 u2)))
+\end{lstlisting}
+
+
+\begin{questions}
+
+\item (5 points) \label{prob:bvv:first} The grammar for the \texttt{BV} language
+is designed in such a way that you do not need to convert a \texttt{BV} program
+to Static Single Assignment (SSA) form before translating it to bit vector
+logic.  Explain in a few sentences what property of this grammar allows you to
+avoid SSA conversion.
+
+
+
+
+\item (20 points) \label{prob:bvv:last} Implement a BMC-style verifier for the
+\texttt{BV} language in \racket, using the solution skeleton in the \src{bvv}
+directory. Your verifier (see \src[bvv/]{verifier.rkt}) should take as input two
+\texttt{BV} program fragments (see \src[bvv/]{examples.rkt} and
+\src[bvv/]{bv.rkt}); produce a  \texttt{QF\_BV} formula that is unsatisfiable
+iff  the programs are equivalent; invoke Z3 on the generated formula
+(\src[bvv/]{solver.rkt}); and decode Z3's output as follows.  If the programs
+are equivalent, the verifier should return \texttt{'EQUIVALENT}; otherwise it
+should return an input, expressed as a list of integers, on which the fragments
+produce a different output.
+
+Inputs to the two programs should be the only unknowns (i.e., bitvector
+constants) in the \texttt{QF\_BV} formula produced by your verifier.  This means
+that the verifier cannot use additional constants to represent the values of
+program expressions and statements.  But it should also not inline the
+translations of individual expressions.  For example, consider the following
+\texttt{BV} fragment:
+
+
+\begin{lstlisting}
+(define-fragment (toy b c)
+  (define a (bvmul b c))
+  (return (bvadd a a)))
+\end{lstlisting}
+\label{prob:impl}
+
+The encoding may introduce two unknowns to represent the input variables
+\texttt{b} and \texttt{c}.  But it may not translate the first statement by
+emitting an SMT-LIB equality assertion such as $(\mathsf{assert}\ (= a\
+(\mathsf{bvmul}\ b\ c)))$, where $a$ is a fresh unknown.  Similarly, it may not
+translate the return statement by inlining the encoding of the first statement,
+i.e., $(\mathsf{bvadd}\ (\mathsf{bvmul}\ b\ c)\ (\mathsf{bvmul}\ b\ c))$.
+
+\medskip
+(\textbf{Hint:}  Your encoding may use SMT-LIB definitions, introduced by \texttt{define-fun}.)
+\medskip
+
+Your encoding should be entirely contained in the \src[bvv/]{verifier.rkt} file.
+In particular, the \texttt{verify-all} procedure in \src[bvv/]{tests.rkt} should
+be executable just by placing your \src[bvv/]{verifier.rkt} into the \src{bvv}
+directory, without modifying any supporting files.  Your encoding will be tested
+and graded automatically, so it is important for the implementation to be
+self-contained, and to adhere to the input/output specification given above.
+Note also that we will test your code on benchmarks that are not included in
+\src[bvv/]{tests.rkt}.  To make sure that your verifier works correctly, you
+will need to write additional tests of your own, especially for corner cases.   
+
+
+
+
+
+\end{questions}
+
+
+\section{Faster Verification With(out) Uninterpreted Functions (20 points)}
+
+One common application of uninterpreted functions, shown in \lecture{06}, is to
+accelerate verification by abstracting away the details of operations that are
+expensive to compute.  In this part of the assignment, you will use
+uninterpreted functions to accelerate two verification queries in a \rosette\
+program.  Then, you will accelerate these queries without uninterpreted
+functions.
+
+The program and the queries are given in \src[uf/]{matrix.rkt}.  The program is
+a straightforward implementation of matrix multiplication, and the queries
+verify that the implementation satisfies two simple properties: \texttt{query-1}
+checks that $A = B \implies A*B = B*A$, and \texttt{query-2} checks that $B =
+A^T \implies (A*A)^T = B*B$. 
+
+Both queries take a long time to solve even on small symbolic matrices, e.g.,
+$4\times4$.  The goal is to get each query to complete in seconds on
+$20\times20$ matrices.  We will take two different approaches to reach this
+goal.  
+
+\begin{questions}
+\item \label{prob:uf:first} (10 points) The first approach is to abstract a set
+of operators of your choosing with uninterpreted functions as described in
+\src[uf/]{uf.rkt}.  This set should include as few operators as possible.
+
+Your solution must be fully contained in your copy of \src[uf/]{uf.rkt}.  No
+other files may be modified.  Submit your copy of \src[uf/]{uf.rkt}, along with
+the typeset (short) answers to the following questions. 
+
+What is the \emph{minimal} set of operators you need to abstract with
+uninterpreted functions in order to accelerate both queries?   Do your
+abstractions depend on any properties of these operators?\looseness=-1 
+
+
+
+\item \label{prob:uf:last} (10 points)  Next, suppose that you cannot use
+uninterpreted functions, but you are allowed to rewrite each query to solve an
+\emph{equivalent} verification problem.  Briefly describe how to rewrite
+\texttt{query-1} and \texttt{query-2} into logically equivalent queries that
+achieve the same level of performance as in Problem \ref{prob:uf:first}, and
+briefly argue why your rewriting strategy results in equivalent verification
+problems. (\textbf{Hint:}  thinking about equalities is key to solving this
+problem.)
+
+
+
+\end{questions}
+
+\section{Finite Model Finding with Alloy (25 points)}
+
+In this part of the assignment, you will formalize the syntax and semantics of
+propositional logic in \alloy, and use this formalization to check the theorem
+about the monotonicity of negation normal form (NNF) from Problem 3 in
+\href{\website/doc/hw1.pdf}{Homework 1}.\looseness=-1   
+
+To start, download
+\href{https://github.com/AlloyTools/org.alloytools.alloy/releases/download/v5.0.0.1/Alloy-5.0.0.1.jar}{Alloy-5.0.0.1.jar}
+and double click on it to launch the Alloy Analyzer tool.  You may also want to
+skim Parts
+\href{http://alloytools.org/tutorials/day-course/s1_logic.pdf}{1}--\href{http://alloytools.org/tutorials/day-course/s2_language.pdf}{2}
+of the Alloy \href{http://alloytools.org/tutorials/day-course/}{tutorial} and
+this
+\href{http://homepage.cs.uiowa.edu/~tinelli/classes/181/Fall17/Notes/alloy-cheatsheet.pdf}{quick
+reference} on Alloy syntax and semantics. 
+
+A skeleton solution can be found in \src[nnf/]{nnf.als}.  Complete the missing
+definitions and submit your copy of \src[nnf/]{nnf.als}.  Solutions will be
+automatically checked against a reference specification, so they need to be
+fully contained in the submitted file.   
+
+
+\begin{questions}
+\item \label{prob:alloy:first} (10 points) Start by formalizing the syntax of propositional logic and NNF.
+\begin{enumerate}
+\item A \emph{formula} in propositional logic can be a variable, negation,
+conjunction, or disjunction. A formula has zero or more children, depending on
+its type (e.g., variables have no children).  We represent formulas as abstract
+syntax graphs that allow sharing of subformulas (so two different formulas may
+contain the same subformula) but disallow cycles (i.e., no formula contains
+itself). Formalize these constraints by completing the definition of the
+\texttt{wellFormedFormulas} fact. Use the Alloy Analyzer to check that your
+definition is correct (e.g., it rejects variables with children) and non-vacuous
+(i.e., it admits some formulas) in a universe with a small number of formulas. 
+
+\item An NNF formula satisfies additional constraints on its structure.  What
+are those constraints?     Formalize them by completing the definition of the
+\texttt{NNF} predicate.  Check your definition for correctness and vacuity bugs.
+
+
+\end{enumerate}
+
+\item (10 points) Next, formalize the semantics of propositional logic.
+\begin{enumerate}
+\item Specify the semantics by completing the definition of the
+\texttt{valuation} predicate. This predicate takes as input a relation from
+formulas to booleans, and returns true iff the input relation is a total
+function that maps each formula to its meaning. (\textbf{Hint:} to specify a
+formula's meaning, consider when the semantics function should map each kind of
+formula to \texttt{True}.)  
+
+\item Use the \texttt{valuation} predicate to define the \texttt{satisfies}
+predicate that specifies what it means for a valuation to satisfy a given
+formula. 
+\end{enumerate}
+Check your definitions for correctness and vacuity bugs.
+
+
+\item (5 points) \label{prob:alloy:last} Finally, finish formalizing the theorem
+about the monotonicity of NNF from Problem 3 in
+\href{\website/doc/hw1.pdf}{Homework 1}. To do so, complete the definition of
+the \texttt{pos} function so that it returns the positive  set of a valuation
+with respect to a formula. Check that the theorem holds for all formulas in a
+small universe. To guard against vacuity, also ensure that the Alloy Analyzer
+can find some formula and valuations that satisfy the premise and violate the
+conclusion of the theorem.\looseness=-1
+
+\end{questions}
+
+
+\end{document}

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha">
+
+<defaultnode/>
+
+<defaultedge/>
+
+<node>
+   <type name="False"/>
+   <type name="Formula"/>
+   <type name="Int"/>
+   <type name="String"/>
+   <type name="True"/>
+   <type name="univ"/>
+   <type name="seq/Int"/>
+   <set name="$showSAT_f" type="Formula"/>
+</node>
+
+<node shape="Dbl Octagon" color="Blue">
+   <type name="Or"/>
+</node>
+
+<node shape="Hexagon" color="Yellow">
+   <type name="And"/>
+</node>
+
+<node shape="Octagon" color="Green">
+   <type name="Not"/>
+</node>
+
+<node shape="Tpl Octagon" color="Red">
+   <type name="Var"/>
+</node>
+
+<node style="Bold" label="Literal">
+   <set name="$Literal" type="Formula"/>
+</node>
+
+<node visible="no">
+   <type name="ordering/Ord"/>
+</node>
+
+<node visible="yes">
+   <type name="Boolean"/>
+</node>
+
+<edge color="Gray" constraint="no">
+   <relation name="Next"> <type name="ordering/Ord"/> <type name="Boolean"/> <type name="Boolean"/> </relation>
+</edge>
+
+<edge color="Gray" visible="no" attribute="yes" constraint="no">
+   <relation name="First"> <type name="ordering/Ord"/> <type name="Boolean"/> </relation>
+</edge>
+
+</view>
+
+</alloy>

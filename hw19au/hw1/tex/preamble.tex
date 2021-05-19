@@ -1,0 +1,38 @@
+\usepackage{listings}
+\usepackage{mathpartir}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+
+
+\definecolor{blue}{RGB}{0,128,200}
+\definecolor{green}{RGB}{0,128,0}
+\definecolor{gray}{RGB}{64, 64, 64}
+
+\hypersetup{
+colorlinks=true,
+filecolor=blue,
+urlcolor=blue,
+citecolor=blue,
+linkcolor=blue}
+
+\SetCourseTitle{CSE 507:  Computer-Aided Reasoning for Software}
+\SetInstructor{Emina Torlak}
+\SetSemester{Fall 2019}
+
+\newcommand\HW[1]{\SetHandoutTitle{Homework Assignment #1}}
+\newcommand\Due[1]{\SetDueDate{#1 at 23:00}}
+
+\newcommand\gitlab{https://gitlab.cs.washington.edu/cse507/hw19au}
+\newcommand\website{https://courses.cs.washington.edu/courses/cse507/19au}
+\newcommand\rosette{\href{https://emina.github.io/rosette/}{Rosette}}
+\newcommand\cadical{\href{https://github.com/arminbiere/cadical}{CaDiCaL}}
+\newcommand\dimacs{\href{https://www.satcompetition.org/2011/format-benchmarks2011.html}{DIMACS}}
+
+
+\lstloadlanguages{Lisp}
+\lstdefinestyle{inline}{numbers=none,basicstyle=\ttfamily}
+\newcommand\cc[1]{{\lstset{style=inline}\lstinline{#1}}}
+\newcommand\ccm[1]{{\lstset{style=inline}\lstinline[mathescape]|#1|}}
