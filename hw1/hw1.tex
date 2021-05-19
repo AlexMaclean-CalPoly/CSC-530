@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsthm, amssymb, amsmath, amsfonts, extramarks}
+\usepackage{gen}
+
+
+\title{HW1}
+\author{Bailey Wickham \& Alex MacLean\\ CSC530}
+
+\date\today
+
+\newenvironment{homeworkProblem}[1]{
+    \section*{Problem #1}
+}
+
+
+\begin{document}
+\maketitle
+
+\subsection{}
+Given a proposition, convert it to CNF.\\
+Proposition:
+\begin{align*}
+    \phi &= \neg (\neg r \rightarrow \neg (p \wedge q))
+\end{align*}
+
+Substitutions:
+\begin{align*}
+    a_{\phi} &= \neg (\neg r \rightarrow \neg a_{p \wedge q}) \\
+    a_{p\wedge q} &= (p \wedge q)
+\end{align*}
+
+Conjunction:
+\begin{gather*}
+    a_{\phi} \wedge (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) \land
+    (a_{p\wedge q} \leftrightarrow (p \wedge q))
+    \\ \text{ where }  \\
+    (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) =
+(\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \\
+    \text{ and } \\
+    (a_{p\wedge q} \leftrightarrow (p \wedge q)) =
+    (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q}) \\
+    \text{ so } \\
+    \phi =
+(\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \land \\
+    (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q})
+\end{gather*}
+
+
+
+\end{document}
+
