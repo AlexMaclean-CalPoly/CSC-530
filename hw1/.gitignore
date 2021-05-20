@@ -1,2 +1,4 @@
 compiled
 *.gz
+*.aux
+*.log

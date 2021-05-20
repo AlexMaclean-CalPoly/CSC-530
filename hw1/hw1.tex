@@ -2,10 +2,10 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{amsthm, amssymb, amsmath, amsfonts, extramarks}
-\usepackage{gen}
+\usepackage{gen, color}
 
 
-\title{HW1}
+\title{Homework Assignment 1}
 \author{Bailey Wickham \& Alex MacLean\\ CSC530}
 
 \date\today
@@ -14,40 +14,89 @@
     \section*{Problem #1}
 }
 
+\newenvironment{solution}{\color{blue} \em }{}
+
+
+
+\setlength\textwidth{6.5in}
+\setlength\textheight{8.75in}
+\setlength\oddsidemargin{0in}
+\setlength\evensidemargin{1in}
+\setlength\topmargin{-0.25in}
+\setlength\parindent{0in}
+\setlength\parskip{0.5em}
 
 \begin{document}
 \maketitle
 
-\subsection{}
-Given a proposition, convert it to CNF.\\
-Proposition:
-\begin{align*}
-    \phi &= \neg (\neg r \rightarrow \neg (p \wedge q))
-\end{align*}
+\section{Propositional Logic and Normal Forms}
+
+
+\begin{enumerate}
+	\setcounter{enumi}{1}
+
+\item (5 points)  Convert the following formula to an equisatisfiable one in CNF using Tseitin's encoding: 
+\[\neg ( \neg r \rightarrow \neg (p \land q))\]
+Write the final CNF as the answer.  
+Use $a_\phi$ to denote the auxiliary variable for the formula $\phi$;
+for example, $a_{p\wedge q}$ should be used to denote the auxiliary variable for $p\wedge q$.
+Your conversion should not introduce auxiliary variables for negations.
+
+\begin{solution}
 
 Substitutions:
 \begin{align*}
-    a_{\phi} &= \neg (\neg r \rightarrow \neg a_{p \wedge q}) \\
-    a_{p\wedge q} &= (p \wedge q)
+    a_{\phi} &\leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q}) \\
+    a_{p\wedge q} &\leftrightarrow (p \wedge q)
 \end{align*}
-
 Conjunction:
 \begin{gather*}
     a_{\phi} \wedge (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) \land
     (a_{p\wedge q} \leftrightarrow (p \wedge q))
     \\ \text{ where }  \\
-    (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) =
+    (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) \equiv
 (\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \\
     \text{ and } \\
-    (a_{p\wedge q} \leftrightarrow (p \wedge q)) =
+    (a_{p\wedge q} \leftrightarrow (p \wedge q)) \equiv
     (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q}) \\
     \text{ so } \\
-    \phi =
+    \phi \equiv
+    a_\phi \land
 (\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \land \\
     (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q})
 \end{gather*}
 
+\end{solution}
 
+\item (10 points)  Let $\phi$ be a propositional formula in NNF, and let $I$ be an interpretation of $\phi$. Let the \emph{positive set} of $I$ with respect to $\phi$, denoted $\emph{pos}(I, \phi)$, be the literals of $\phi$ that are satisfied by $I$. As an example, for the NNF formula $\phi = (\neg r \land p) \lor q$ and the interpretation $I = [r \mapsto \bot, p \mapsto \top, q \mapsto \bot]$, we have $\emph{pos}(I, \phi) = \{ \neg r, p \}$. Prove the following theorem about the monotonicity of NNF: 
+
+{\bf Monotonicity of NNF:} For every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$. 
+
+(\textbf{Hint:} Use structural induction.) \label{prob:NNF}
+
+
+
+\item (10 points) Let $\phi$ be an NNF formula.  Let $\hat{\phi}$ be a formula derived from $\phi$ using a modified version of Tseitin's encoding in which the CNF constraints are derived from implications rather than bi-implications.   For example, given the formula
+\[a_1\land (a_2 \lor \neg a_3),\]
+the new encoding is the CNF equivalent of the following, where $x_0, x_1, x_2$ are fresh auxiliary variables:\looseness=-1
+\[
+\begin{array}{ll}
+x_0 & \land \\
+(x_0 \rightarrow a_1 \land x_1) & \land \\
+(x_1 \rightarrow a_2 \lor x_2) & \land \\
+(x_2 \rightarrow \neg a_3) &  \\
+\end{array}
+\]
+Note that Tseitin's encoding to CNF starts with the same formula, except that $\rightarrow$ is replaced with $\leftrightarrow$.  As a result, the new encoding has roughly half as many clauses as the Tseitin's encoding.
+
+\medskip
+Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.  
+
+\medskip
+(\textbf{Hint}: Use the theorem from Problem \ref{prob:NNF}.)
+
+
+\end{enumerate}
 
 \end{document}
 
