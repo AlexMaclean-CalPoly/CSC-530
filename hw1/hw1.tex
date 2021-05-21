@@ -35,9 +35,9 @@
 \begin{enumerate}
 	\setcounter{enumi}{1}
 
-\item (5 points)  Convert the following formula to an equisatisfiable one in CNF using Tseitin's encoding: 
+\item (5 points)  Convert the following formula to an equisatisfiable one in CNF using Tseitin's encoding:
 \[\neg ( \neg r \rightarrow \neg (p \land q))\]
-Write the final CNF as the answer.  
+Write the final CNF as the answer.
 Use $a_\phi$ to denote the auxiliary variable for the formula $\phi$;
 for example, $a_{p\wedge q}$ should be used to denote the auxiliary variable for $p\wedge q$.
 Your conversion should not introduce auxiliary variables for negations.
@@ -68,11 +68,29 @@ Conjunction:
 
 \end{solution}
 
-\item (10 points)  Let $\phi$ be a propositional formula in NNF, and let $I$ be an interpretation of $\phi$. Let the \emph{positive set} of $I$ with respect to $\phi$, denoted $\emph{pos}(I, \phi)$, be the literals of $\phi$ that are satisfied by $I$. As an example, for the NNF formula $\phi = (\neg r \land p) \lor q$ and the interpretation $I = [r \mapsto \bot, p \mapsto \top, q \mapsto \bot]$, we have $\emph{pos}(I, \phi) = \{ \neg r, p \}$. Prove the following theorem about the monotonicity of NNF: 
+\item (10 points)  Let $\phi$ be a propositional formula in NNF, and let $I$ be an interpretation of $\phi$. Let the \emph{positive set} of $I$ with respect to $\phi$, denoted $\emph{pos}(I, \phi)$, be the literals of $\phi$ that are satisfied by $I$. As an example, for the NNF formula $\phi = (\neg r \land p) \lor q$ and the interpretation $I = [r \mapsto \bot, p \mapsto \top, q \mapsto \bot]$, we have $\emph{pos}(I, \phi) = \{ \neg r, p \}$. Prove the following theorem about the monotonicity of NNF:
 
-{\bf Monotonicity of NNF:} For every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$. 
+{\bf Monotonicity of NNF:} For every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$.
 
 (\textbf{Hint:} Use structural induction.) \label{prob:NNF}
+
+\begin{solution}
+\begin{proof}
+    Proceed by structural induction.
+
+\item \textbf{Base case}: Suppose that $\phi$ is of the form: $p$ or $\neg p$ and $I \models \phi$. Then $pos(I, \phi)$ must contain $p$ or $\neg p$ respectively. Since $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$ then that element must also be in $\emph{pos}(I', \phi)$. Therefore $I' \models \phi$.
+
+\item \textbf{Inductive hypothesis}: Suppose there exists a $\phi_1$ and $\phi_2$ such that for every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi_i) \subseteq \emph{pos}(I', \phi_i)$, if $I \models \phi_i$, then $I' \models \phi_i$.
+
+\item \textbf{Inductive step}:
+    Let $\phi = \phi_1 \land \phi_2$ and $I$ satisfy $\phi$. Let $pos(I, \phi) \subseteq pos(I', \phi)$ for some interpretation $I'$.  Then $I \models \phi_1$ and $pos(I, \phi_1) \subseteq pos(I, \phi) \subseteq pos(I', \phi)$ so by the inductive hypothesis $I' \models \phi_1$. A similar argument can be applied to $\phi_2$. Since $I' \models \phi_1$ and $I' \models \phi_2$, $I' \models \phi$.
+The case for $\phi = \phi_1 \lor \phi_2$ follows similarly.
+
+\item \textbf{Conclusion: } By induction, every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$.
+
+
+\end{proof}
+\end{solution}
 
 
 
@@ -90,7 +108,7 @@ x_0 & \land \\
 Note that Tseitin's encoding to CNF starts with the same formula, except that $\rightarrow$ is replaced with $\leftrightarrow$.  As a result, the new encoding has roughly half as many clauses as the Tseitin's encoding.
 
 \medskip
-Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.  
+Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.
 
 \medskip
 (\textbf{Hint}: Use the theorem from Problem \ref{prob:NNF}.)
