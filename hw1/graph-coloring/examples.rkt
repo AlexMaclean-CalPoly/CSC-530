@@ -24,8 +24,8 @@ small-problems
 
 ; If you have dot installed on your system, uncomment the following 
 ; lines to visualize small-graph:
-;(dot "/usr/local/bin/dot") ; your dot installation directory
-;(visualize small-graph small-graph-coloring)
+(dot "/usr/bin/dot") ; your dot installation directory
+(visualize small-graph small-graph-coloring)
 
 ; Runs your k-coloring procedure (see k-coloring.rkt) on the provided problem, 
 ; printing timing data and #t/#f depending on whether the produced 
@@ -38,7 +38,7 @@ small-problems
   (printf "valid-coloring? ~a\n" (valid-coloring? graph coloring)))
 
 ; Uncomment to test your encoding of small-problem:
-;(run (first small-problems))
+(run (first small-problems))
 
 ; A SAT solver accepts a CNF formula, represented as a list of lists of 
 ; integers, and returns #f or an interpretation, depending on whether the 

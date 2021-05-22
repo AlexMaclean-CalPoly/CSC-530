@@ -17,4 +17,10 @@
 ; Returns a coloring/c if the given graph can 
 ; be colored with k colors.  Otherwise returns #f.
 (define (k-coloring graph k)
-  (error 'k-coloring "not implemented yet!"))
+  (define v (vector-length graph))
+  (define vertex-constraint (build-list v (lambda (index) (build-list k (lambda (i) (+ i (* k index) 1))))))
+  (define edge-constraint (append-map (lambda (w edges)
+                                        (append-map (lambda (v) (build-list k (lambda (c) (list (- (+ c (* k v) 1)) (- (+ c (* k w) 1)))))) edges))
+                                                    (range v) (vector->list graph)))
+  (define solution (solve (append vertex-constraint edge-constraint)))
+  (displayln solution))
