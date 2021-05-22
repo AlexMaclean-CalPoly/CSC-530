@@ -17,14 +17,28 @@
 ; Returns a coloring/c if the given graph can 
 ; be colored with k colors.  Otherwise returns #f.
 (define (k-coloring graph k)
+  (get-coloring (solve (get-constraints graph k)) k))
+
+(define (get-constraints graph k)
   (define v (vector-length graph))
-  (define vertex-constraint (build-list v (λ (index) (build-list k (λ (c) (+ c (* k index) 1))))))
-  (define edge-constraint (append-map (λ (w edges)
-                                        (append-map (λ (v)
-                                                      (build-list k (λ (c)
-                                                                      (list (- (+ c (* k v) 1))
-                                                                            (- (+ c (* k w) 1))))))
-                                                    edges))
-                                      (range v) (vector->list graph)))
-  (define solution (solve (append vertex-constraint edge-constraint)))
-  (displayln solution))
+  (append (build-list v (λ (index) (build-list k (λ (c) (var index c k)))))
+          (append-map (λ (w edges)
+                        (append-map (λ (v)
+                                      (build-list k (λ (c)
+                                                      (list (- (var v c k))
+                                                            (- (var w c k))))))
+                                    edges))
+                      (range v) (vector->list graph))))
+(define (var v c k)
+  (+ c (* k v) 1))
+
+(define (get-coloring i k)
+  (and i
+  (list->vector (map (compose sub1 -)
+       (map (curry findf positive?) (split-many i k)) (range 0 (length i) k)))))
+
+(define (split-many l n)
+  (if (empty? l) l
+      (cons (take l n) (split-many (drop l n) n))))
+
+
