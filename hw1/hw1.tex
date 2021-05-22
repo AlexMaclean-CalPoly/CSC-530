@@ -34,7 +34,19 @@
 
 
 \begin{enumerate}
-	\setcounter{enumi}{1}
+\item (5 points) \label{prob:classify} Use the solution skeleton in \texttt{classify.rkt}, 
+write a Rosette procedure that takes as input a formula $F$ in propositional logic and outputs
+\begin{itemize}
+	\item \texttt{'TAUTOLOGY} if $I \models F$ for every interpretation $I$;
+	\item \texttt{'CONTRADICTION} if $I \not\models F$ for every interpretation $I$; and, 
+	\item \texttt{'CONTINGENCY} if there are two interpretations $I$ and $I'$ such that $I\models F$ and $I'\not\models F$.
+\end{itemize}
+Your procedure may contain at most two solver-aided queries (such as \texttt{solve}), 
+	and if it contains more than one query, then the two queries must be different (i.e., you cannot use \texttt{solve} twice).
+
+\begin{solution}
+	See \texttt{classify.rkt}
+\end{solution}
 
 \item (5 points)  Convert the following formula to an equisatisfiable one in CNF using Tseitin's encoding:
 \[\neg ( \neg r \rightarrow \neg (p \land q))\]
@@ -124,6 +136,7 @@ A graph is \emph{k-colorable} if there is an assignment of $k$ colors to its ver
 A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_n\}$ and edges $E=\{\langle v_{i_1}, w_{i_1}\rangle,\ldots,\langle v_{i_m}, w_{i_m}\rangle\}$.  Given a set of $k$ colors $C=\{c_1,\ldots,c_k\}$, the \emph{k-coloring} problem for $G$ is to assign a color $c\in C$  to each vertex $v\in V$ such that for every edge $\langle v,w\rangle\in E$, $\mathsf{color}(v)\neq\mathsf{color}(w)$.
 
 \begin{enumerate}
+	\setcounter{enumi}{5}
 \item (10 points) Show how to encode an instance of a $k$-coloring problem into a propositional formula $F$ that is satisfiable iff a $k$-coloring exists.
 \begin{enumerate}
 \item Describe a set of propositional constraints asserting that every vertex is colored.  Use the notation $\mathsf{color}(v) = c$ to indicate that a vertex $v$ has the color $c$.  Such an assertion is encodable as a single propositional variable $p^c_v$ (since the set of vertices and colors are both finite).
@@ -137,7 +150,7 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
 \item Describe a set of propositional constraints asserting that every vertex has at most one color.
 
 \begin{solution}
-    $$\bigwedge_{v \in V} (\bigwedge_{c \in C} p^c_v \rightarrow \neg (\bigvee_{c' \in C- \{c\}} p^{c'}_v))  $$
+    $$\bigwedge_{v \in V} \bigwedge_{c \in C} (p^c_v \rightarrow \neg (\bigvee_{c' \in C- \{c\}} p^{c'}_v))  $$
 \end{solution}
 
 
@@ -151,7 +164,9 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
 \item Identify a significant optimization in this encoding that reduces its size asymptotically.  (\textbf{Hint:} Can any constraints be dropped?  Why?)
 
 \begin{solution}
-    Drop constraint b.
+    The constraint ensuring that each vertex has only 1 color (b) can be dropped. 
+    If the SAT solver assigns a vertex multiple colors this just means that any of them
+    can be picked for a valid coloring.
 \end{solution}
 
 
@@ -162,19 +177,22 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
      \land \bigwedge_{v \in V} (\bigvee_{c \in C} p^c_v)  $$
 
 
-     Total clauses: $ k(|V| + |E|)$
+     Clauses: $ k(|V| + |E|)$;
+     Variables: $k|V|$
 
 \end{solution}
 
 
 \end{enumerate} \label{prob:encoding}
 
-\item (20 points) \label{prob:kcol} Implement the above encoding in Racket, using the provided solution skeleton.  See the  README file for instructions on obtaining solvers and the database of graph coloring problems.  Your program should generate the encoding for a given graph (see graph.rkt), call a SAT solver on it (solver.rkt), and then decode the result into an assignment of colors to vertices  (see \texttt{examples.rkt} and \texttt{k-coloring.rkt}).
+\item (20 points) \label{prob:kcol} Implement the above encoding in Racket, using the provided solution skeleton.  See the \texttt{README} file for instructions on obtaining solvers and the database of graph coloring problems.  Your program should generate the encoding for a given graph (see \texttt{graph.rkt}), call a SAT solver on it (\texttt{solver.rkt}), and then decode the result into an assignment of colors to vertices  (see \texttt{examples.rkt} and \texttt{k-coloring.rkt}).
 
 Your implementation should be able to solve all of the easy and medium instances in under 15 minutes on an ordinary laptop.
 (The reference implementation does so in about 7 minutes.)
 
-
+\begin{solution}
+	See \texttt{k-coloring.rkt}
+\end{solution}
 
 \item (5 points) Describe a CNF encoding for $k$-coloring that uses $O(|V|\log k+|E|\log k)$ variables and clauses.
 
