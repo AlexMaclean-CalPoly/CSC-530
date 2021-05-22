@@ -44,6 +44,6 @@ small-problems
 ; A SAT solver accepts a
 ; integers, and returns #f or an interpretation, depending on whether the 
 ; formula is satisfiable or not (see solver.rkt).
-(solve '((1 -2) (-1) (2))) ; unsat
-(solve '((1 -2) (1)))      ; sat
+; (solve '((1 -2) (-1) (2))) ; unsat
+; (solve '((1 -2) (1)))      ; sat
 
