@@ -19,7 +19,7 @@
 (define (k-coloring graph k)
   (get-coloring (solve (get-constraints graph k)) k))
 
-;; Retruns a cnf/c representing a reduction of the coloring problem represented by graph and k
+;; Returns a cnf/c representing a reduction of the coloring problem represented by graph and k
 (define (get-constraints graph k)
   (append
    (for/list ([v (vector-length graph)])
@@ -28,7 +28,7 @@
      (list (- (var v c k)) (- (var w c k))))))
 
 ;; Given a vertex index v, a color c, and the total number of colors k, returns the
-;; correspoinding literal
+;; corresponding literal
 (define (var v c k)
   (+ c (* k v) 1))
 
