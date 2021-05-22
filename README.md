@@ -3,3 +3,4 @@
 
 ### Homework 1 Deliverables
 * [hw1.pdf](hw1/hw1.pdf)
+* [classify.rkt](hw1/classify.rkt)
