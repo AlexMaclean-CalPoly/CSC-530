@@ -19,17 +19,13 @@
 (define (k-coloring graph k)
   (get-coloring (solve (get-constraints graph k)) k))
 
-;; Returns a cnf/c representing a reduction of the coloring problem represented by graph and k
+;; Retruns a cnf/c representing a reduction of the coloring problem represented by graph and k
 (define (get-constraints graph k)
-  (define v (vector-length graph))
-  (append (build-list v (λ (index) (build-list k (λ (c) (var index c k)))))
-          (append-map (λ (w edges)
-                        (append-map (λ (v)
-                                      (build-list k (λ (c)
-                                                      (list (- (var v c k))
-                                                            (- (var w c k))))))
-                                    edges))
-                      (range v) (vector->list graph))))
+  (append
+   (for/list ([v (vector-length graph)])
+     (for/list ([c k]) (var v c k)))
+   (for/list ([v (vector-length graph)] [edges graph] #:when #t [w edges] #:when #t [c k])
+     (list (- (var v c k)) (- (var w c k))))))
 
 ;; Given a vertex index v, a color c, and the total number of colors k, returns the
 ;; correspoinding literal
@@ -38,9 +34,8 @@
 
 ;; Given an interpretation i, returns a coloring/c of k colors or #f
 (define (get-coloring i k)
-  (and i
-       (list->vector (map (compose sub1 -)
-                          (map (curry findf positive?) (split-many i k)) (range 0 (length i) k)))))
+  (and i (for/vector ([v-offset (range 0 (length i) k)] [colors (split-many i k)])
+           (- (findf positive? colors) v-offset 1))))
 
 ;; Given a list splits it up into a list of many lists, each with n elements
 (define (split-many lst n)
