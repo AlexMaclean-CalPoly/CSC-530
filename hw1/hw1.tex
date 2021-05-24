@@ -57,27 +57,24 @@ Your conversion should not introduce auxiliary variables for negations.
 
 \begin{solution}
 
-Substitutions:
+\[
+\begin{array}{ll}
+a_{\phi} & \land \\
+( a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) & \land \\
+(a_{p\wedge q} \leftrightarrow (p \wedge q)) &  \\
+\end{array}
+\]
 \begin{align*}
-    a_{\phi} &\leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q}) \\
-    a_{p\wedge q} &\leftrightarrow (p \wedge q)
-\end{align*}
-Conjunction:
-\begin{gather*}
-    a_{\phi} \wedge (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) \land
-    (a_{p\wedge q} \leftrightarrow (p \wedge q))
-    \\ \text{ where }  \\
-    (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) \equiv
+    (a_{\phi} \leftrightarrow \neg (\neg r \rightarrow \neg a_{p \wedge q})) &\equiv
 (\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \\
-    \text{ and } \\
-    (a_{p\wedge q} \leftrightarrow (p \wedge q)) \equiv
-    (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q}) \\
-    \text{ so } \\
-    \phi \equiv
-    a_\phi \land
-(\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \land \\
-    (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q})
-\end{gather*}
+    (a_{p\wedge q} \leftrightarrow (p \wedge q)) &\equiv
+    (\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q}) 
+\end{align*}
+\[
+a_\phi \land
+(\neg a_\phi \lor \neg r) \land (\neg a_\phi \lor a_{p \land q}) \land (r \lor \neg a_{p \land q} \lor a_\phi) \land 
+(\neg a_{p\wedge q} \lor p ) \land (\neg a_{p\land q} \lor q) \wedge (\neg p \lor \neg q \lor a_{p\wedge q}) 
+\]
 
 \end{solution}
 
@@ -91,15 +88,15 @@ Conjunction:
 \begin{proof}
     Proceed by structural induction.
 
-\item \textbf{Base case}: Suppose that $\phi$ is of the form: $p$ or $\neg p$ and $I \models \phi$. Then $pos(I, \phi)$ must contain $p$ or $\neg p$ respectively. Since $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$ then that element must also be in $\emph{pos}(I', \phi)$. Therefore $I' \models \phi$.
+\item \textbf{Base case:} Suppose that $\phi$ is of the form: $p$ or $\neg p$ and $I \models \phi$. Then $pos(I, \phi)$ must contain $p$ or $\neg p$ respectively. Since $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$ then that element must also be in $\emph{pos}(I', \phi)$. Therefore $I' \models \phi$.
 
-\item \textbf{Inductive hypothesis}: Suppose there exists a $\phi_1$ and $\phi_2$ such that for every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi_i) \subseteq \emph{pos}(I', \phi_i)$, if $I \models \phi_i$, then $I' \models \phi_i$.
+\item \textbf{Inductive hypothesis:} Suppose there exists a $\phi_1$ and $\phi_2$ such that for every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi_i) \subseteq \emph{pos}(I', \phi_i)$, if $I \models \phi_i$, then $I' \models \phi_i$.
 
-\item \textbf{Inductive step}:
+\item \textbf{Inductive step:}
     Let $\phi = \phi_1 \land \phi_2$ and $I$ satisfy $\phi$. Let $pos(I, \phi) \subseteq pos(I', \phi)$ for some interpretation $I'$.  Then $I \models \phi_1$ and $pos(I, \phi_1) \subseteq pos(I, \phi) \subseteq pos(I', \phi)$ so by the inductive hypothesis $I' \models \phi_1$. A similar argument can be applied to $\phi_2$. Since $I' \models \phi_1$ and $I' \models \phi_2$, $I' \models \phi$.
 The case for $\phi = \phi_1 \lor \phi_2$ follows similarly.
 
-\item \textbf{Conclusion: } By induction, every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$.
+\item \textbf{Conclusion:} By induction, every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$.
 
 
 \end{proof}
@@ -145,8 +142,6 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
     $$\bigwedge_{v \in V} (\bigvee_{c \in C} p^c_v)  $$
 \end{solution}
 
-
-
 \item Describe a set of propositional constraints asserting that every vertex has at most one color.
 
 \begin{solution}
@@ -160,7 +155,6 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
     $$\bigwedge_{\langle v, w \rangle \in E} \bigwedge_{c \in C} (\neg p_v^c \lor \neg p_w^c)  $$
 \end{solution}
 
-
 \item Identify a significant optimization in this encoding that reduces its size asymptotically.  (\textbf{Hint:} Can any constraints be dropped?  Why?)
 
 \begin{solution}
@@ -168,7 +162,6 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
     If the SAT solver assigns a vertex multiple colors this just means that any of them
     can be picked for a valid coloring.
 \end{solution}
-
 
 \item Specify your constraints in CNF.  For $|V|$ vertices, $|E|$ edges, and $k$ colors, how many variables and clauses does your encoding require?
 
@@ -201,6 +194,69 @@ Your implementation should be able to solve all of the easy and medium instances
 \item (5 points) Most modern SAT solvers support \emph{incremental solving}---that is, obtaining a solution to a CNF, adding more constraints, obtaining another solution, and so on.  Because the solver keeps (some) learned clauses between invocations, incremental solving is  generally the fastest way to solve a series of related CNFs.  How would you apply incremental solving to your encoding from Problem \ref{prob:kcol} to find the smallest number of colors needed to color a graph (i.e., its chromatic number)?  \label{prob:last}
 
 
+\end{enumerate}
+
+\section{Optimal Graph Coloring with Variations on SAT (10 points)}\label{varsat}
+
+
+Consider the following variations on the propositional satisfiability (SAT) problem discussed in Lecture 5:
+
+\begin{description}
+	
+	\item[Partial Weighted MaxSAT] Given a CNF formula $\phi_H = \bigwedge_{c \in H} c$ corresponding to a set of \emph{hard} clauses $H$, and a CNF formula $\phi_S = \bigwedge_{c \in S} c$ corresponding to a set of \emph{soft} CNF clauses $S$ with weights $w : S \rightarrow \mathbb{Z^+}$, the Partial Weighted MaxSAT problem is to find an assignment $A$ to the problem variables that satisfies all the hard clauses and that maximizes the weight of the satisfied soft clauses. That is, $A \models \bigwedge_{c \in H} c$, and if we let $C = \{ c\in S | A\models c\}$, then there is no $C'\subseteq S$ such that $H\cup C'$ is satisfiable and $\sum_{c'\in C'} w(c') > \sum_{c\in C} w(c)$.
+	
+	\item[Pseudo-Boolean Optimization]  Let $B$ be a set of \emph{pseudo-boolean constraints} of the form $\sum a_{ij}x_j \geq b_i$, where $x_j$ is a variable over $\{0, 1\}$ and $a_{ij}, b_i, c_j$ are integer constants.  The Pseudo-Boolean Optimization problem is to satisfy all constraints in $B$ while minimizing a linear function $\sum c_j \cdot x_j$.
+\end{description}
+%
+
+Let $G = \langle V, E\rangle$ be a finite graph and $C_k = \{ c_1, \ldots, c_k \}$ a set of $k$ colors. 
+Let $P(G, C_k)$ be the CNF formula produced by applying your encoding from Problems \ref{prob:encoding}-\ref{prob:kcol}  
+to the graph $G$ and the coloring $C_k$. 
+As before, we use $p_v^c$ to denote the propositional variable indicating that the vertex $v\in V$ has the color $c\in C_k$.
+
+
+\begin{enumerate}
+	\setcounter{enumi}{9}
+	
+	\item (5 points) Explain how to create a Partial Weighted MaxSAT instance $P_{\text{opt}}(G)$ 
+	such that every solution to $P_{\text{opt}}(G)$ represents a valid $\chi$-coloring of $G$ where $\chi$ is 
+	the chromatic number of $G$ (i.e., the smallest possible number of colors needed to color $G$). 
+	
+	Your encoding of  $P_{\text{opt}}(G)$ may use $P(G, C_k)$ for at most one $k$ of your choosing.  
+	So, $P_{\text{opt}}(G)$ cannot use, for example, both $P(G, C_1)$ and $P(G, C_2)$.
+	
+	Write down  $P_{\text{opt}}(G)$ by specifying the set $H$ of hard clauses, 
+	the set $S$ of soft clauses, and the function $w : S \rightarrow \mathbb{Z^+}$ that assigns a positive weight to each soft clause in $S$. 
+	
+	\begin{align*}
+	H    	&=     \bigwedge \ldots \\
+	S    	&=     \bigwedge \ldots \\
+	w(s)    	&=    \ldots \text{ for each clause } s  \in S\\ 
+	\end{align*} 
+	
+	
+	
+	\item (5 points)  Explain how to create a Pseudo-Boolean Optimization instance $P_{\text{opt}}(G)$ 
+	such that every solution to $P_{\text{opt}}(G)$ represents a valid $\chi$-coloring of $G$ where $\chi$ is 
+	the chromatic number of $G$ (i.e., the smallest possible number of colors needed to color $G$). 
+	
+	To create $P_{\text{opt}}(G)$, observe that every CNF instance  
+	can be transformed into a set of equivalent pseudo-boolean constraints.  
+	To apply this observation, explain how to do the transformation. 
+	
+	As before, your encoding of  $P_{\text{opt}}(G)$ may use the  pseudo-boolean equivalent of  $P(G, C_k)$ for at most one $k$ of your choosing.  
+	
+	
+	Write down  $P_{\text{opt}}(G)$ by specifying the pseudo-boolean constraints to solve and the linear function to minimize: 
+	
+	\begin{align*}
+	\text{minimize}  	 \quad& \sum \ldots \\
+	\text{subject to}    	\quad&  \bigwedge \ldots \\
+	\end{align*} 
+	
+	
+	
+	
 \end{enumerate}
 
 \end{document}
