@@ -3,10 +3,11 @@
 \usepackage[english]{babel}
 \usepackage{amsthm, amssymb, amsmath, amsfonts, extramarks}
 \usepackage{gen, color}
+\usepackage{cancel} 
 
 
 
-\title{Homework Assignment 1}
+\title{Homework Assignment \xcancel{1} 6}
 \author{Bailey Wickham \& Alex MacLean\\ CSC530}
 
 \date\today
@@ -126,6 +127,45 @@ Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.
 
 \end{enumerate}
 
+
+\section{SAT solving (20 points)}\label{solving}
+
+
+\begin{enumerate}
+	\setcounter{enumi}{4}
+	
+	\item (20 points) In this problem, you will trace the execution of CaDiCaL, a high-performance SAT solver, on a sample CNF, and use this trace to reconstruct the abstract state transitions of the underlying CDCL algorithm (Lecture 4). 
+	
+	The sample CNF is given in the DIMACS format and represents the following clauses: 
+	\begin{center}
+		$(\neg x_1 \lor x_2 \lor x_4) \wedge (x_1 \lor x_3)  \wedge (\neg x_4 \lor \neg x_2) \wedge (\neg x_4 \lor \neg x_1 \lor x_2)  \wedge (x_3 \lor \neg x_1)  \wedge (\neg x_3 \lor \neg x_2 \lor x_4) \wedge (x_1 \lor x_4) \wedge (\neg x_2 \lor x_1)$
+	\end{center}
+	
+	To start, clone CaDiCaL from GitHub and checkout tag \texttt{sc18}. Next, follow the instructions in the included \texttt{README.md} file to configure and build the solver in logging mode using \texttt{./configure -l \&\& make}. Finally, run the solver (in \texttt{build/cadical}) with the logging (\texttt{-l}) option on \texttt{sample.cnf}, and the solver will output a detailed trace of its execution. 
+	
+	Using this detailed trace, reconstruct the behavior of the underlying CDCL algorithm by filling out the following abstract trace template, given as a list of abstract trace entries:
+	
+	\begin{itemize}
+		\item \textbf{Level} \textcolor{DarkGreen}{$i$}  \hfill{\textcolor{DarkGreen}{\emph{; decision level $i$}}}
+		\begin{itemize}
+			\item \textbf{Decision:} \textcolor{DarkGreen}{$d_i$}  \hfill{\textcolor{DarkGreen}{\emph{; decision literal at level $i$ or NA if level due to backtracking}}}
+			\item \textbf{BCP:} \textcolor{DarkGreen}{$p_{i_0}, \ldots, p_{i_n}$} \hfill{\textcolor{DarkGreen}{\emph{; literals inferred by BCP at level $i$, in the detailed trace order}}}
+			\item \textbf{Conflict Clause:}  \textcolor{DarkGreen}{$l_{i_0} \ldots l_{i_k}$} \hfill{\textcolor{DarkGreen}{\emph{; conflict clause or NA if no conflict at level $i$}}}
+			
+			\item \textbf{Implication Graph:} \textcolor{DarkGreen}{graph image} \hfill{\textcolor{DarkGreen}{\emph{; implication graph at level $i$, visualized with GraphViz}}}
+			
+		\end{itemize}
+		\item $\ldots$
+	\end{itemize}
+	
+	To produce the abstract trace, create an abstract trace  entry (``Level'') whenever the decision level changes in the detailed trace due to a new decision or backtracking. When filling out the entry template, use the literal names from the detailed trace. For example, the solver will represent the literal $\neg x_1$ as \texttt{-1}. Use GraphViz to visualize the implication graph at a given level. The \texttt{impl-graph.dot} file shows an example of how to specify implication graphs with GraphViz. Use the LaTeX \texttt{\textbackslash includegraphics} command to insert the resulting graph images into your \texttt{hw1.pdf} file.
+	
+	
+	
+	
+	
+\end{enumerate}
+
 \section{Graph Coloring with SAT (40 points)}\label{coloring}
 
 A graph is \emph{k-colorable} if there is an assignment of $k$ colors to its vertices such that no two adjacent vertices have the same color.  Deciding if such a coloring exists is a classic NP-complete problem with many practical applications, such as register allocation in compilers.  In this problem, you will develop a CNF encoding for graph coloring and apply them to graphs from various application domains, including course scheduling, N-queens puzzles, and register allocation for real code.
@@ -148,7 +188,6 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
     $$\bigwedge_{v \in V} \bigwedge_{c \in C} (p^c_v \rightarrow \neg (\bigvee_{c' \in C- \{c\}} p^{c'}_v))  $$
 \end{solution}
 
-
 \item Describe a set of propositional constraints asserting that no two adjacent vertices have the same color.
 
 \begin{solution}
@@ -166,8 +205,11 @@ A finite graph $G = \langle V, E\rangle$ consists of vertices $V=\{v_1,\ldots,v_
 \item Specify your constraints in CNF.  For $|V|$ vertices, $|E|$ edges, and $k$ colors, how many variables and clauses does your encoding require?
 
 \begin{solution}
-    $$\bigwedge_{\langle v, w \rangle \in E} \bigwedge_{c \in C} (\neg p_v^c \lor \neg p_w^c)
-     \land \bigwedge_{v \in V} (\bigvee_{c \in C} p^c_v)  $$
+	
+$$
+		P(G,C_k) = (\bigwedge_{\langle v, w \rangle \in E} \bigwedge_{c \in C} (\neg p_v^c \lor \neg p_w^c)) 
+		          \land (\bigwedge_{v \in V} (\bigvee_{c \in C} p^c_v))  
+$$
 
 
      Clauses: $ k(|V| + |E|)$;
@@ -190,13 +232,8 @@ Your implementation should be able to solve all of the easy and medium instances
 \item (5 points) Describe a CNF encoding for $k$-coloring that uses $O(|V|\log k+|E|\log k)$ variables and clauses.
 
 \begin{solution}
-    Instead of representing vertex coloring as $k$ literals, each literal coresponding to one possible color, represent colors by each literal represented by a bit in a binary string. This encodes the colors as binary, using $\log k$ the number of variables.
-
-    Edge constraint:
-    $$ \bigwedge_{\langle v, w \rangle \in E} (\bigvee_{b \in B} p^b_v \land \neg p^b_w )$$
+    Instead of representing vertex coloring as $k$ literals, each literal corresponding to one possible color, Assign each color a number from $0$ to $k$, then use literals to represent the bits in a binary encoding of this number. This encoding will require $O(\log k)$ literals where $k$ is the number of colors. For each vertex a constraint will be required which translates   
 \end{solution}
-
-
 
 \item (5 points) Most modern SAT solvers support \emph{incremental solving}---that is, obtaining a solution to a CNF, adding more constraints, obtaining another solution, and so on.  Because the solver keeps (some) learned clauses between invocations, incremental solving is  generally the fastest way to solve a series of related CNFs.  How would you apply incremental solving to your encoding from Problem \ref{prob:kcol} to find the smallest number of colors needed to color a graph (i.e., its chromatic number)?  \label{prob:last}
 
@@ -205,7 +242,7 @@ Your implementation should be able to solve all of the easy and medium instances
 \end{solution}
 
 \begin{solution}
-    Start with the constraints generated by $P(G, C_{|V|})$, meaning each vertex has a unique color. We know that this is staisfiable. Next, add the constraint that none of verticies may be assigned the greatest color. Iteritevly add this constraint until the problem is no longer satisfiable. Since we are only adding constraint, the SAT solver can use the previously calculated work to incrementalally solve this problem. The coloring and the chromatic number correspond to the final satisfiable expression.
+    Start with the constraints generated by $P(G, C_{|V|})$, meaning each vertex has a unique color. We know that this is satisfiable. Next, add the constraint that none of vertices may be assigned the greatest color. Iteratively add this constraint until the problem is no longer satisfiable. Since we are only adding constraint, the SAT solver can use the previously calculated work to incrementally solve this problem. The coloring and the chromatic number correspond to the final satisfiable expression.
 \end{solution}
 
 \end{enumerate}
@@ -250,8 +287,6 @@ As before, we use $p_v^c$ to denote the propositional variable indicating that t
 	\end{align*}
 \end{solution}
 
-
-
 	\item (5 points)  Explain how to create a Pseudo-Boolean Optimization instance $P_{\text{opt}}(G)$
 	such that every solution to $P_{\text{opt}}(G)$ represents a valid $\chi$-coloring of $G$ where $\chi$ is
 	the chromatic number of $G$ (i.e., the smallest possible number of colors needed to color $G$).
@@ -264,12 +299,17 @@ As before, we use $p_v^c$ to denote the propositional variable indicating that t
 
 
 	Write down  $P_{\text{opt}}(G)$ by specifying the pseudo-boolean constraints to solve and the linear function to minimize:
-
     \begin{solution}
 	\begin{align*}
-        \text{minimize}  	 \quad& \sum 2^c \cdot p^c_v \\
-    \text{subject to } \quad&  P(G, C_{|V|}) \\
+        \text{minimize}  	 \quad& \sum_{c \in C}\sum_{v \in V} 2^c \cdot p^c_v \\
+    \text{subject to } \quad&  P(G, C_{|V|})
 	\end{align*}
+	
+	A CNF formula can be converted to a set of pseudo-boolean constraints by transforming each disjunctive sub-clause $C$ into a sum where $\sum_{c \in C} 1 \cdot c \geq 1$. The pseudo-booleans in this expression will all be of the from $p$ or $\neg p$. Every literal and it's negation must be related to each other by adding the following constraints as well.
+	\begin{align*}
+	(p) + (\neg p) &\geq 1 \quad&& \text{Ensures that either the predicate or the negation is true}\\
+	-1 \cdot (p) + -1 \cdot (\neg p) &\geq -1 \quad&& \text{Ensures that either the predicate or the negation is false}
+	\end{align*} 
     \end{solution}
 
 
