@@ -4,3 +4,4 @@ compiled
 *.log
 *.bak
 *.fdb_latexmk
+*.fls
