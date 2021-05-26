@@ -89,20 +89,18 @@ a_\phi \land
 \begin{proof}
     Proceed by structural induction.
 
-\item \textbf{Base case:} Suppose that $\phi$ is of the form: $p$ or $\neg p$ and $I \models \phi$. Then $pos(I, \phi)$ must contain $p$ or $\neg p$ respectively. Since $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$ then that element must also be in $\emph{pos}(I', \phi)$. Therefore $I' \models \phi$.
+\item \textbf{Base case:} Suppose that $\phi$ is a literal of the form $p$ or $\neg p$ and $I$ is an interpretation such that $I \models \phi$. Then $pos(I, \phi)$ must contain $p$ or $\neg p$ respectively. Since $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$ then that element must also be in $\emph{pos}(I', \phi)$. Therefore $I' \models \phi$.
 
 \item \textbf{Inductive hypothesis:} Suppose there exists a $\phi_1$ and $\phi_2$ such that for every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi_i) \subseteq \emph{pos}(I', \phi_i)$, if $I \models \phi_i$, then $I' \models \phi_i$.
 
 \item \textbf{Inductive step:}
-    Let $\phi = \phi_1 \land \phi_2$ and $I$ satisfy $\phi$. Let $pos(I, \phi) \subseteq pos(I', \phi)$ for some interpretation $I'$.  Then $I \models \phi_1$ and $pos(I, \phi_1) \subseteq pos(I, \phi) \subseteq pos(I', \phi)$ so by the inductive hypothesis $I' \models \phi_1$. A similar argument can be applied to $\phi_2$. Since $I' \models \phi_1$ and $I' \models \phi_2$, $I' \models \phi$.
+    Let $\phi = \phi_1 \land \phi_2$ and $I$ be an interpretation such that $I \models \phi$. Because $I \models \phi$ by the semantics of propositional logic $I \models \phi_1$. Since $\phi$ contains all the literals in $\phi_1$ then $pos(I, \phi_1) \subseteq pos(I, \phi)$. For any interpretation $I'$ such that $pos(I, \phi) \subseteq pos(I', \phi)$ then $pos(I, \phi_1) \subseteq pos(I', \phi_1)$.  Since $I \models \phi_1$ and $pos(I, \phi_1) \subseteq pos(I', \phi_1)$ by the inductive hypothesis $I' \models \phi_1$. A similar argument can be applied to $\phi_2$. Since $I' \models \phi_1$ and $I' \models \phi_2$, $I' \models \phi$.
 The case for $\phi = \phi_1 \lor \phi_2$ follows similarly.
 
 \item \textbf{Conclusion:} By induction, every interpretation $I$ and $I'$ such that $\emph{pos}(I, \phi) \subseteq \emph{pos}(I', \phi)$, if $I \models \phi$, then $I' \models \phi$.
 
-
 \end{proof}
 \end{solution}
-
 
 
 \item (10 points) Let $\phi$ be an NNF formula.  Let $\hat{\phi}$ be a formula derived from $\phi$ using a modified version of Tseitin's encoding in which the CNF constraints are derived from implications rather than bi-implications.   For example, given the formula
@@ -124,6 +122,11 @@ Prove that $\hat{\phi}$ is satisfiable if and only if $\phi$ is satisfiable.
 \medskip
 (\textbf{Hint}: Use the theorem from Problem \ref{prob:NNF}.)
 
+\begin{solution}
+	\begin{proof}
+		...
+	\end{proof}
+\end{solution}
 
 \end{enumerate}
 
