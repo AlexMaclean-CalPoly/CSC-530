@@ -3,6 +3,9 @@ digraph ImplicationGraph {
   rankdir=LR;
   margin=0;
 
+  node [color=blue, fontcolor=blue]
+  edge [color=blue, fontcolor=blue]
+
   n1 [label="1@1"];
   n2 [label="3@1"];
   n3 [label="2@2"];
