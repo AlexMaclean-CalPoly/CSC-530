@@ -1,0 +1,7 @@
+compiled
+*.gz
+*.aux
+*.log
+*.bak
+*.fdb_latexmk
+*.fls

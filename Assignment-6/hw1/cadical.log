@@ -1,0 +1,299 @@
+c LOG 0 set option --log=1 from (const char*) "1"
+c ---- [ banner ] ------------------------------------------------------------
+c 
+c CaDiCaL Radically Simplified CDCL SAT Solver
+c Version sc18 ecb1e3ed59777d1db304795f8bc6b6dd7eea7b9a
+c Copyright (c) 2016-2018 Armin Biere, JKU
+c 
+c Wed May 26 08:28:30 HST 2021
+c g++ (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
+c Linux y 5.4.0-72-generic x86_64
+c g++ -Wall -O3 -DNDEBUG -DLOGGING
+c 
+c ---- [ parsing input ] -----------------------------------------------------
+c 
+c reading DIMACS file from 'sample.cnf'
+c opening file to read 'sample.cnf'
+c found 'p cnf 4 8' header
+c LOG 0 enlarge internal from size 0 to new size 5
+c LOG 0 initialized 4 internal variables
+c LOG 0 enlarge external from size 0 to new size 5
+c LOG 0 initialized 4 external variables
+c LOG 0 mapping external 1 to internal 1
+c LOG 0 mapping external 2 to internal 2
+c LOG 0 mapping external 3 to internal 3
+c LOG 0 mapping external 4 to internal 4
+c LOG 0 adding external -1 as internal -1
+c LOG 0 adding external 2 as internal 2
+c LOG 0 adding external 4 as internal 4
+c LOG 0 new irredundant size 3 clause -1 2 4
+c LOG 0 marking added irredundant size 3 clause -1 2 4
+c LOG 0 watch -1 blit 2 in irredundant size 3 clause -1 2 4
+c LOG 0 watch 2 blit -1 in irredundant size 3 clause -1 2 4
+c LOG 0 adding external 1 as internal 1
+c LOG 0 adding external 3 as internal 3
+c LOG 0 new irredundant size 2 clause 1 3
+c LOG 0 marking added irredundant size 2 clause 1 3
+c LOG 0 watch 1 blit 3 in irredundant size 2 clause 1 3
+c LOG 0 watch 3 blit 1 in irredundant size 2 clause 1 3
+c LOG 0 adding external -4 as internal -4
+c LOG 0 adding external -2 as internal -2
+c LOG 0 new irredundant size 2 clause -2 -4
+c LOG 0 marking added irredundant size 2 clause -2 -4
+c LOG 0 watch -2 blit -4 in irredundant size 2 clause -2 -4
+c LOG 0 watch -4 blit -2 in irredundant size 2 clause -2 -4
+c LOG 0 adding external -4 as internal -4
+c LOG 0 adding external -1 as internal -1
+c LOG 0 adding external 2 as internal 2
+c LOG 0 new irredundant size 3 clause -1 2 -4
+c LOG 0 marking added irredundant size 3 clause -1 2 -4
+c LOG 0 watch -1 blit 2 in irredundant size 3 clause -1 2 -4
+c LOG 0 watch 2 blit -1 in irredundant size 3 clause -1 2 -4
+c LOG 0 adding external 3 as internal 3
+c LOG 0 adding external -1 as internal -1
+c LOG 0 new irredundant size 2 clause -1 3
+c LOG 0 marking added irredundant size 2 clause -1 3
+c LOG 0 watch -1 blit 3 in irredundant size 2 clause -1 3
+c LOG 0 watch 3 blit -1 in irredundant size 2 clause -1 3
+c LOG 0 adding external -3 as internal -3
+c LOG 0 adding external -2 as internal -2
+c LOG 0 adding external 4 as internal 4
+c LOG 0 new irredundant size 3 clause -2 -3 4
+c LOG 0 marking added irredundant size 3 clause -2 -3 4
+c LOG 0 watch -2 blit -3 in irredundant size 3 clause -2 -3 4
+c LOG 0 watch -3 blit -2 in irredundant size 3 clause -2 -3 4
+c LOG 0 adding external 1 as internal 1
+c LOG 0 adding external 4 as internal 4
+c LOG 0 new irredundant size 2 clause 1 4
+c LOG 0 marking added irredundant size 2 clause 1 4
+c LOG 0 watch 1 blit 4 in irredundant size 2 clause 1 4
+c LOG 0 watch 4 blit 1 in irredundant size 2 clause 1 4
+c LOG 0 adding external -2 as internal -2
+c LOG 0 adding external 1 as internal 1
+c LOG 0 new irredundant size 2 clause 1 -2
+c LOG 0 marking added irredundant size 2 clause 1 -2
+c LOG 0 watch 1 blit -2 in irredundant size 2 clause 1 -2
+c LOG 0 watch -2 blit 1 in irredundant size 2 clause 1 -2
+c parsed 8 clauses in 0.00 seconds
+c closing file 'sample.cnf'
+c after reading 73 bytes 0.0 MB
+c 
+c ---- [ options ] -----------------------------------------------------------
+c 
+c --log=true  (different from default false)
+c 
+c ---- [ proof tracing ] -----------------------------------------------------
+c 
+c will not generate nor write DRAT proof
+c 
+c ---- [ solving ] -----------------------------------------------------------
+c 
+c LOG 0 init fast_glue_avg EMA target alpha 0.03
+c LOG 0 init jump_avg EMA target alpha 1e-05
+c LOG 0 init size_avg EMA target alpha 1e-05
+c LOG 0 init slow_glue_avg EMA target alpha 1e-05
+c 
+c  seconds    reductions      redundant    irredundant
+c         MB       restarts           glue       variables
+c           level       conflicts         size        remaining
+c 
+c G  0.00  2  0.0  0    0     0     0 0.0  0.0    8   4 100.0%
+c LOG 0 deleting garbage clauses
+c [collect-1] collected 0 bytes of 0 garbage clauses
+c C  0.00  2  0.0  0    0     0     0 0.0  0.0    8   4 100.0%
+c LOG 0 next decision variable 1
+c LOG 1 decide 1
+c LOG 1 assign 1 decision
+c LOG 1 propagating 1
+c LOG 1 assign 3 irredundant size 2 clause -1 3
+c LOG 1 unwatch 4 in irredundant size 3 clause 2 -1 4
+c LOG 1 watch 4 blit -1 in irredundant size 3 clause 2 4 -1
+c LOG 1 unwatch -4 in irredundant size 3 clause 2 -1 -4
+c LOG 1 watch -4 blit -1 in irredundant size 3 clause 2 -4 -1
+c LOG 1 propagating 3
+c LOG 1 unwatch 4 in irredundant size 3 clause -2 -3 4
+c LOG 1 watch 4 blit -3 in irredundant size 3 clause -2 4 -3
+c LOG 1 queue unassigned now 2 bumped 3
+c LOG 1 next decision variable 2
+c LOG 2 decide 2
+c LOG 2 assign 2 decision
+c LOG 2 propagating 2
+c LOG 2 assign -4 irredundant size 2 clause -2 -4
+c LOG 2 conflict irredundant size 3 clause 4 -2 -3
+c LOG 2 analyzing conflict irredundant size 3 clause 4 -2 -3
+c LOG 2 found new level 2 contributing to conflict
+c LOG 2 analyzed literal 4 assigned at level 2
+c LOG 2 analyzed literal -2 assigned at level 2
+c LOG 2 found new level 1 contributing to conflict
+c LOG 2 analyzed literal -3 assigned at level 1
+c LOG 2 analyzing -4 reason irredundant size 2 clause -2 -4
+c LOG 2 first UIP 2
+c LOG 2 1st UIP size 2 and glue 2 clause -3 -2
+c LOG 2 update fast_glue_avg EMA with 2 beta 1 yields 2
+c LOG 2 new fast_glue_avg EMA wait = period = 1, beta = 0.5
+c LOG 2 update slow_glue_avg EMA with 2 beta 1 yields 2
+c LOG 2 new slow_glue_avg EMA wait = period = 1, beta = 0.5
+c LOG 2 bumping also reason literal -1 assigned at level 1
+c LOG 2 moved to front 4 and bumped 5
+c LOG 2 moved to front 3 and bumped 6
+c LOG 2 moved to front 2 and bumped 7
+c LOG 2 moved to front 1 and bumped 8
+c LOG 2 minimizing first UIP clause -3 -2
+c LOG 2 minimized 0 literals
+c LOG 2 update size_avg EMA with 2 beta 1 yields 2
+c LOG 2 new size_avg EMA wait = period = 1, beta = 0.5
+c LOG 2 new redundant size 2 clause -2 -3
+c LOG 2 marking added redundant size 2 clause -2 -3
+c LOG 2 watch -2 blit -3 in redundant size 2 clause -2 -3
+c LOG 2 watch -3 blit -2 in redundant size 2 clause -2 -3
+c LOG 2 update jump_avg EMA with 1 beta 1 yields 1
+c LOG 2 new jump_avg EMA wait = period = 1, beta = 0.5
+c LOG 2 backtracking to decision level 1
+c LOG 2 unassign -4
+c LOG 2 queue unassigned now 4 bumped 5
+c LOG 2 unassign 2
+c LOG 2 queue unassigned now 2 bumped 7
+c LOG 1 assign -2 redundant size 2 clause -2 -3
+c LOG 1 propagating -2
+c LOG 1 assign 4 irredundant size 3 clause 4 2 -1
+c LOG 1 conflict irredundant size 3 clause -4 2 -1
+c LOG 1 analyzing conflict irredundant size 3 clause -4 2 -1
+c LOG 1 found new level 1 contributing to conflict
+c LOG 1 analyzed literal -4 assigned at level 1
+c LOG 1 analyzed literal 2 assigned at level 1
+c LOG 1 analyzed literal -1 assigned at level 1
+c LOG 1 analyzing 4 reason irredundant size 3 clause 4 2 -1
+c LOG 1 analyzing -2 reason redundant size 2 clause -2 -3
+c LOG 1 analyzed literal -3 assigned at level 1
+c LOG 1 analyzing 3 reason irredundant size 2 clause -1 3
+c LOG 1 first UIP 1
+c LOG 1 1st UIP size 1 and glue 1 clause -1
+c LOG 1 update fast_glue_avg EMA with 1 beta 0.5 yields 1.5
+c LOG 1 update slow_glue_avg EMA with 1 beta 0.5 yields 1.5
+c LOG 1 moved to front 4 and bumped 9
+c LOG 1 moved to front 3 and bumped 10
+c LOG 1 moved to front 2 and bumped 11
+c LOG 1 moved to front 1 and bumped 12
+c LOG 1 update size_avg EMA with 1 beta 0.5 yields 1.5
+c LOG 1 update jump_avg EMA with 0 beta 0.5 yields 0.5
+c LOG 1 backtracking to decision level 0
+c LOG 1 unassign 4
+c LOG 1 queue unassigned now 4 bumped 9
+c LOG 1 unassign -2
+c LOG 1 queue unassigned now 2 bumped 11
+c LOG 1 unassign 3
+c LOG 1 unassign 1
+c LOG 1 queue unassigned now 1 bumped 12
+c LOG 0 learned unit clause -1
+c LOG 0 assign -1 unit
+c LOG 0 propagating -1
+c LOG 0 learned unit clause 3
+c LOG 0 assign 3 irredundant size 2 clause 1 3
+c LOG 0 learned unit clause 4
+c LOG 0 assign 4 irredundant size 2 clause 1 4
+c LOG 0 learned unit clause -2
+c LOG 0 assign -2 irredundant size 2 clause 1 -2
+c LOG 0 propagating 3
+c LOG 0 propagating 4
+c LOG 0 propagating -2
+c i  0.00  2  0.5  0    0     2     1 1.5  1.5    8   0 0.0%
+c 1  0.00  2  0.5  0    0     2     1 1.5  1.5    8   0 0.0%
+c [extend] mapping internal 4 assignments to 4 assignments
+c [extend] updated 4 external assignments
+c [extend] extending through extension stack of size 0
+c [extend] flipped 0 literals during extension
+c 
+c ---- [ result ] ------------------------------------------------------------
+c 
+s SATISFIABLE
+v -1 -2 3 4
+v 0
+c 
+c ---- [ run-time profiling data ] -------------------------------------------
+c 
+c         0.00   25.07% search
+c         0.00   14.12% parse
+c         0.00    3.38% collect
+c         0.00    0.00% decompose
+c         0.00    0.00% elim
+c         0.00    0.00% compact
+c         0.00    0.00% probe
+c         0.00    0.00% deduplicate
+c         0.00    0.00% reduce
+c         0.00    0.00% connect
+c         0.00    0.00% simplify
+c         0.00    0.00% subsume
+c         0.00    0.00% transred
+c         0.00    0.00% vivify
+c   ===============================
+c         0.00  100.00% all
+c 
+c ---- [ statistics ] --------------------------------------------------------
+c 
+c bumped:                       12         6.00    per conflict
+c compacts:                      0         0.00    conflicts per compact
+c conflicts:                     2       454.13    per second
+c decisions:                     2       454.13    per second
+c decompositions:                0         0.00    decompositions per probing
+c eliminated:                    0         0.00 %  of all variables
+c eliminations:                  0         0.00    conflicts per elimination
+c failed:                        0         0.00 %  of all variables
+c fixed:                         4       100.00 %  of all variables
+c   units:                       1         2.00    conflicts per unit
+c   binaries:                    1         2.00    conflicts per binary
+c flushed:                       0         0.00    conflicts per flushed
+c flushings:                     0         0.00    conflicts per flushing
+c learned:                       3         1.50    per conflict
+c memory:                  6307840         6.02    bytes and MB
+c minimized:                     0         0.00 %  of 1st-UIP-literals
+c probings:                      0         0.00    conflicts per probing
+c probed:                        0         0.00    per failed
+c   hbrs:                        0         0.00    per probed
+c   hbrsizes:                    0         0.00    per hbr
+c   hbreds:                      0         0.00 %  per hbr
+c   hbrsubs:                     0         0.00 %  per hbr
+c propagations:                  8         0.00    millions per second
+c   searchprops:                 8       100.00 %  of propagations
+c   transredprops:               0         0.00 %  of propagations
+c   probeprops:                  0         0.00 %  of propagations
+c   vivifyprops:                 0         0.00 %  of propagations
+c reduced:                       0         0.00 %  clauses per conflict
+c   collections:                 1         2.00    conflicts per collection
+c   extendbytes:                 0         0.00    bytes and MB
+c reductions:                    0         0.00    conflicts per reduction
+c rephased:                      0         0.00    conflicts per rephase
+c resolutions:                   0         0.00    per eliminated
+c   elimres2:                    0         0.00 %  per resolved
+c   elimrestried:                0         0.00 %  per resolved
+c restarts:                      0         0.00    conflicts per restart
+c reused:                        0         0.00 %  per restart
+c searched:                      1         0.50    per decision
+c stabilizing:                   0         0.00 %  conflicts
+c strengthened:                  0         0.00    per subsumed
+c   subirr:                      0         0.00 %  of subsumed
+c   subred:                      0         0.00 %  of subsumed
+c   subtried:                    0         0.00    per conflict
+c   subchecks:                   0         0.00    per tried
+c   subchecks2:                  0         0.00 %  per subcheck
+c substituted:                   0         0.00 %  of all variables
+c subsumed:                      0         0.00    tried per subsumed
+c   duplicated:                  0         0.00 %  per subsumed
+c   transitive:                  0         0.00 %  per subsumed
+c subsumptions:                  0         0.00    conflicts per subsumption
+c time:                                    0.00    seconds
+c transreductions:               0         0.00    conflicts per reduction
+c vivifications:                 0         0.00    conflicts per vivification
+c vivified:                      0         0.00 %  per vivify check
+c   vivifychecks:                0         0.00 %  per conflict
+c   vivifysched:                 0         0.00 %  checks per scheduled
+c   vivifyunits:                 0         0.00 %  per vivify check
+c   vivifysubs:                  0         0.00 %  per subsumed
+c   vivifystrs:                  0         0.00 %  per strengthened
+c   vivifystrirr:                0         0.00 %  per vivify strengthened
+c   vivifystred1:                0         0.00 %  per vivify strengthened
+c   vivifystred2:                0         0.00 %  per vivify strengthened
+c   vivifystred3:                0         0.00 %  per vivify strengthened
+c   vivifydecs:                  0         0.00    per checks
+c   vivifyreused:                0         0.00 %  per decision
+c 
+c exit 10

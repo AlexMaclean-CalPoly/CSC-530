@@ -1,0 +1,42 @@
+
+\NeedsTeXFormat{LaTeX2e}[1999/06/01]
+
+\ProvidesPackage{gen}[2008/02/17 Common commands]
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+%\RequirePackage{amsrefs}
+\RequirePackage{latexsym}
+\RequirePackage{ifthen}
+\RequirePackage{verbatim}
+\RequirePackage{enumerate}
+\RequirePackage{xspace}
+\RequirePackage[mathscr]{eucal}
+%\RequirePackage[all]{xy}
+\RequirePackage{graphicx}
+\RequirePackage{color}
+
+\newcommand{\bR}{\ensuremath{\protect\mathbb{R}}\xspace} %blackboard bold R for Real numbers
+\newcommand{\bC}{\ensuremath{\protect\mathbb{C}}\xspace} %blackboard bold C for Complex numbers
+\newcommand{\bH}{\ensuremath{\protect\mathbb{H}}\xspace} %blackboard bold H for Quaternions
+\newcommand{\bD}{\ensuremath{\protect\mathbb{D}}\xspace} %blackboard bold D for test functions
+\newcommand{\bE}{\ensuremath{\mathbb{E}}\xspace} %blackboard bold E for Euclidean space
+\newcommand{\bEd}{\ensuremath{\mathbb{E}^d}\xspace} %blackboard bold E for Euclidean space
+\newcommand{\bEn}[1][n]{\ensuremath{\mathbb{E}^{#1}}\xspace} %blackboard bold E for Euclidean space
+\newcommand{\bN}{\ensuremath{\protect\mathbb{N}}\xspace} %blackboard bold N for Natural numbers
+\newcommand{\bQ}{\ensuremath{\protect\mathbb{Q}}\xspace} %blackboard bold Q for Rational numbers
+
+
+\RequirePackage{listings}
+\definecolor{CodeBackground}{rgb}{0.95,0.95,0.95}
+\definecolor{DarkGreen}{rgb}{0.0,0.5,0.0}
+\lstset{language=matlab}
+\lstset{linewidth=6in}
+\lstset{xleftmargin=0.3in}
+\lstset{frame=single}
+\lstset{framesep=0.1in}
+\lstset{captionpos=b}
+\lstset{basicstyle=\small}
+\lstset{keywordstyle=\color{blue}\bfseries}
+\lstset{commentstyle=\color{DarkGreen}}
+\lstset{backgroundcolor=\color{CodeBackground}}
