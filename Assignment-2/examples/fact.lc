@@ -1,0 +1,4 @@
+(println ((lam fact ((fact fact) 10))
+                (lam self
+                    (lam v
+                        (ifleq0 v 1 (* v ((self self) (+ v -1))))))))

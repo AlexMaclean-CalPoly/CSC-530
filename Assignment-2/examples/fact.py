@@ -1,0 +1,1 @@
+print(((lambda fact: ((fact(fact))(10)))((lambda self: (lambda v: (1 if (v <= 0) else (v * ((self(self))((v + -1))))))))))
